@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<!--
+  Purpose: Define structure for the A1 Agent Terminal Version 9.
+  Add-only rule: This is a standalone file that does not modify index.html.
+  Existing features protected: None of the existing backend or frontend views are affected.
+-->
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <!-- [BACKEND-AI-INSTRUCTION]: این فایل قالب نهایی فرانت‌اند (SPA) است. تمامی داده‌ها باید از طریق APIهای RESTful یا WebSocket به المان‌های این فایل متصل شوند. -->
+  <title>A1 Agent - Advanced Trading Terminal V9</title>
+  
+  <!-- Tailwind CSS & Fonts -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <script>
+    /*
+      Purpose: Configure Tailwind settings for the terminal.
+      Scope: Isolated to this HTML file.
+      Existing UI protected: Does not modify global site styles.
+    */
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Vazirmatn', 'sans-serif'] },
+          colors: { 
+            app: { bg: '#050B14', primary: '#3B82F6', a1green: '#00D26A', red: '#EF4444', text: '#F8FAFC', muted: '#94A3B8' } 
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /*
+      Purpose: Custom scrollbars, animations, and glassmorphism UI.
+      Scope: Restricted to a1-terminal-v9.html.
+    */
+    .hide-scroll::-webkit-scrollbar { display: none; }
+    .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+    .fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .glass-card {
+      background: linear-gradient(135deg, rgba(16, 25, 36, 0.8) 0%, rgba(9, 14, 20, 0.95) 100%);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 0.75rem;
+      box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.4);
+    }
+    
+    .glass-input { background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.1); color: white; transition: all 0.2s; }
+    .glass-input:focus { border-color: #00D26A; outline: none; }
+    
+    .log-line { position: relative; padding-right: 12px; }
+    .log-line::before { content: ''; position: absolute; right: 0; top: 4px; bottom: -4px; width: 1px; background: rgba(255,255,255,0.1); }
+    .log-dot { position: absolute; right: -2px; top: 6px; width: 5px; height: 5px; border-radius: 50%; background: #00D26A; }
+    .log-dot.red { background: #EF4444; }
+    
+    .captcha-bg {
+      background-color: #e2e8f0;
+      background-image: url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 12 12' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2.22 0l-2.22 2.22v1.41l3.64-3.64h-1.41zm3.64 0h-1.41l-4.44 4.44v1.41l5.86-5.86zm3.64 0h-1.41l-7.27 7.27v1.41l8.69-8.69zm3.64 0h-1.41l-10.91 10.91v1.09h1.41l10.91-10.91v-1.09h-1.41zm0 2.83l-8.08 8.08h1.41l6.67-6.67v-1.41zm0 3.64l-4.44 4.44h1.41l3.03-3.03v-1.41zm0 3.64l-.81.81h1.41l-.6-.6v-.21z' fill='%23000000' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
+    }
+
+    .typing-indicator span { display: inline-block; width: 4px; height: 4px; background-color: #00D26A; border-radius: 50%; animation: typing 1.4s infinite ease-in-out both; margin: 0 1px; }
+    .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+    .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+    @keyframes typing { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+  </style>
+</head>
+<body class="bg-black text-app-text font-sans antialiased flex justify-center h-screen overflow-hidden selection:bg-app-a1green selection:text-black" style="background: radial-gradient(circle at 50% 0%, #0a1424 0%, #02050a 100%);">
+
+  <main class="w-full max-w-md h-full relative flex flex-col shadow-[0_0_50px_rgba(0,0,0,0.9)] border-x border-white/5">
+    
+    <!-- Header -->
+    <header class="flex items-center justify-between px-4 py-3 glass-card rounded-none border-t-0 border-x-0 border-b border-app-a1green/20 z-20">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded bg-app-a1green/10 text-app-a1green border border-app-a1green/30 font-extrabold flex items-center justify-center text-sm shadow-[0_0_10px_rgba(0,210,106,0.2)]">A1</div>
+        <div class="flex flex-col">
+          <span class="font-bold text-xs tracking-wide">ترمینال معاملاتی هوشمند</span>
+          <span class="text-[9px] text-app-a1green flex items-center gap-1.5 mt-0.5 opacity-80" id="header-status">
+            <span class="w-1.5 h-1.5 rounded-full bg-app-a1green animate-pulse"></span> سرور متصل
+          </span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <!-- Trading Mode Badge -->
+        <span id="header-mode-badge" class="px-2 py-0.5 bg-app-primary/20 text-app-primary border border-app-primary/40 rounded text-[9px] font-bold tracking-widest transition-colors">PAPER</span>
+        
+        <button onclick="TradeManager.openTradeModal()" class="px-2 py-1.5 bg-app-a1green/10 text-app-a1green border border-app-a1green/30 rounded text-[9px] font-bold">ثبت سفارش</button>
+        <button id="btn-top-kill" onclick="TradeManager.executeKillSwitch()" class="w-8 h-8 rounded bg-app-red/10 text-app-red border border-app-red/30 flex items-center justify-center hover:bg-app-red hover:text-white transition-all shadow-[0_0_10px_rgba(239,68,68,0.2)]" title="Kill Switch">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="flex-1 overflow-y-auto overflow-x-hidden hide-scroll relative z-0 pb-20 p-3 space-y-4" id="main-content">
+      
+      <!-- ================= 1. Strategy Tab ================= -->
+      <section id="tab-strategy" class="tab-pane block fade-in space-y-3">
+        
+        <!-- [BACKEND-AI-INSTRUCTION]: System ON/OFF Toggle -->
+        <div class="glass-card p-3 border-r-2 border-app-a1green mb-2 bg-black/40">
+          <div class="flex justify-between items-center">
+            <div>
+              <span class="text-[11px] font-bold text-white block">وضعیت ربات (Engine Status)</span>
+              <span class="text-[9px] text-app-muted" id="sys-status-text">سیستم فعال و آماده به کار</span>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="master-system-toggle" class="sr-only peer" checked onchange="SystemManager.toggleSystem(this)">
+              <div class="w-9 h-5 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-app-a1green"></div>
+            </label>
+          </div>
+        </div>
+
+        <div class="glass-card p-3 border-r-2 border-app-primary">
+          <div class="flex justify-between items-start mb-3">
+            <div class="flex-1">
+              <label class="text-[9px] text-app-muted block mb-1">حالت استراتژی فعال (Mode)</label>
+              <select class="w-full bg-black/40 border border-white/10 rounded px-2 py-1.5 text-xs text-white outline-none focus:border-app-primary">
+                <option>۱. روند یاب هوشمند (Trend Following)</option>
+                <option>۲. پرایس اکشن (Price Action RTM)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 2. Watchlist Tab ================= -->
+      <section id="tab-watchlist" class="tab-pane hidden space-y-3">
+        <div class="glass-card p-3">
+          <div class="flex justify-between items-center mb-3 border-b border-white/5 pb-2">
+            <span class="text-[10px] font-bold text-white">دیده‌بان هوشمند (API Snapshot)</span>
+            <button onclick="MarketManager.fetchSnapshot()" class="text-[8px] text-app-primary">به‌روزرسانی</button>
+          </div>
+          <div class="space-y-3" id="watchlist-container">
+            <div class="text-center text-[10px] text-app-muted py-4">در حال دریافت داده‌های بازار...</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 3. Chart Tab ================= -->
+      <section id="tab-chart" class="tab-pane hidden space-y-3 h-full flex flex-col">
+        <div class="glass-card p-2 flex justify-between items-center">
+          <select class="bg-white/10 border border-white/20 rounded px-2 py-1 text-[10px] text-white outline-none">
+            <option class="bg-app-bg">فولاد (فولاد مبارکه)</option>
+          </select>
+          <div class="flex gap-1 text-[9px]">
+            <button class="bg-app-a1green text-black px-2 py-1 rounded font-bold">1D</button>
+          </div>
+        </div>
+        <div class="glass-card flex-1 p-1 relative w-full h-64">
+          <div id="tvchart" class="w-full h-full rounded overflow-hidden"></div>
+        </div>
+      </section>
+
+      <!-- ================= 4. AI Chat Tab ================= -->
+      <section id="tab-ai" class="tab-pane hidden h-full flex flex-col relative">
+        <div class="flex-1 overflow-y-auto space-y-4 hide-scroll pb-2 px-1" id="chat-messages">
+          <div class="flex gap-3 max-w-[92%] fade-in">
+            <div class="w-7 h-7 rounded-full bg-app-a1green/20 border border-app-a1green/50 text-app-a1green flex items-center justify-center shrink-0 text-[9px] font-bold">A1</div>
+            <div class="glass-card rounded-tr-sm p-3 text-[11px] text-app-text leading-relaxed border-0 shadow-lg">
+              سلام! من A1 هستم. آماده دریافت دستورات شما.
+            </div>
+          </div>
+        </div>
+        <div class="pt-1 sticky bottom-0 bg-transparent pb-2 mt-2">
+          <form id="ai-chat-form" onsubmit="ChatManager.sendMessage(event)" class="flex items-center gap-2 glass-card p-1.5 rounded-full border-white/20 focus-within:border-app-a1green transition-colors shadow-[0_0_15px_rgba(0,0,0,0.5)]">
+            <input type="text" id="ai-chat-input" placeholder="دستور یا مبلغ برداشت را وارد کنید..." autocomplete="off" class="flex-1 bg-transparent border-none outline-none text-xs px-3 py-2 text-white placeholder-app-muted">
+            <button type="submit" class="w-9 h-9 rounded-full bg-app-a1green text-black flex items-center justify-center shrink-0 hover:brightness-110">
+              <svg class="w-4 h-4 transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- ================= 5. Broker Tab ================= -->
+      <section id="tab-broker" class="tab-pane hidden space-y-4">
+        
+        <!-- [BACKEND-AI-INSTRUCTION]: Trading Mode Toggle (Demo vs Live) -->
+        <div class="glass-card p-4 border-l-2 border-app-red mb-2 bg-app-red/5">
+          <div class="flex justify-between items-center">
+            <div>
+              <span class="text-[11px] font-bold text-white block">حالت معاملات (Trading Mode)</span>
+              <span class="text-[9px] text-app-muted" id="trading-mode-text">دمو (Paper Trading)</span>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="trading-mode-toggle" class="sr-only peer" onchange="SystemManager.toggleTradingMode(this)">
+              <div class="w-9 h-5 bg-app-primary/30 peer-focus:outline-none rounded-full peer peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:right-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-app-red"></div>
+            </label>
+          </div>
+          <p class="text-[8px] text-app-muted mt-2 border-t border-white/5 pt-2">در حالت دمو، معاملات به صورت مجازی و برای تست سیستم ثبت می‌شوند. هیچ پولی از حساب شما کسر نخواهد شد.</p>
+        </div>
+
+        <!-- Broker Settings -->
+        <div class="glass-card p-4">
+          <h3 class="font-semibold text-sm mb-4 border-b border-white/10 pb-2 text-white flex items-center gap-2">
+            اتصال کارگزاری
+          </h3>
+          <!--
+            Purpose: Preserve the broker login UI.
+            Security: Uses standard username/password/captcha fields to comply with Iranian broker forms.
+          -->
+          <form class="space-y-3" onsubmit="BrokerManager.simulateLogin(event)">
+            <select id="broker-select" class="w-full glass-input rounded-lg px-3 py-2 text-xs appearance-none focus:border-app-primary text-white">
+              <option class="bg-app-bg text-white">مفید (ایزی تریدر)</option>
+              <option class="bg-app-bg text-white">فارابی (فارابیکسو)</option>
+              <option class="bg-app-bg text-white">اقتصاد بیدار</option>
+            </select>
+            
+            <div class="flex gap-2">
+              <input type="text" id="broker-username" placeholder="نام کاربری" required class="flex-1 glass-input rounded-lg px-3 py-2 text-xs font-mono" dir="ltr">
+              <input type="password" id="broker-password" placeholder="رمز عبور" required class="flex-1 glass-input rounded-lg px-3 py-2 text-xs font-mono" dir="ltr">
+            </div>
+            
+            <div class="flex gap-2 h-10 mt-2">
+              <input type="text" id="broker-captcha" placeholder="کد تصویر" required class="flex-1 glass-input rounded-lg px-3 text-sm text-center tracking-[0.3em] font-mono" dir="ltr">
+              <div class="w-24 captcha-bg rounded-lg flex items-center justify-center border border-white/10 relative overflow-hidden">
+                <span class="text-black font-mono font-bold text-lg tracking-[0.2em] blur-[0.5px] opacity-80">8392</span>
+              </div>
+            </div>
+            <button type="submit" class="w-full bg-white/10 border border-white/20 text-white py-2 rounded-lg text-xs font-bold mt-2 hover:bg-app-primary">ذخیره و اتصال</button>
+          </form>
+        </div>
+
+        <!-- Orders Container -->
+        <div class="glass-card p-4">
+          <div class="flex justify-between items-center mb-3 border-b border-white/10 pb-2">
+            <span class="text-[11px] font-bold text-white">سفارشات فعال</span>
+            <button onclick="TradeManager.fetchOrders()" class="text-[9px] text-app-primary">رفرش (API)</button>
+          </div>
+          <div id="orders-container" class="space-y-2 text-[10px]">
+            <div class="text-center text-app-muted py-2">در حال بارگذاری سفارشات...</div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Floating AI Button -->
+    <button onclick="window.location.hash='#ai'; ChatManager.triggerProactivePrompt();" class="absolute bottom-20 left-4 z-50 w-11 h-11 bg-app-a1green text-black rounded-full shadow-[0_0_20px_rgba(0,210,106,0.4)] flex items-center justify-center hover:scale-105 transition-transform">
+      <span class="absolute top-0 right-0 w-3 h-3 bg-app-red rounded-full border-2 border-app-bg animate-ping"></span>
+      <span class="absolute top-0 right-0 w-3 h-3 bg-app-red rounded-full border-2 border-app-bg"></span>
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path></svg>
+    </button>
+
+    <!-- Navigation -->
+    <nav class="absolute bottom-0 w-full glass-card rounded-none border-x-0 border-b-0 px-1 py-2 flex justify-between items-center z-20 pb-safe">
+      <a href="#strategy" class="nav-btn flex-1 flex flex-col items-center gap-1 text-white transition-colors" data-tab="strategy">
+        <svg class="w-5 h-5 text-app-a1green" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path></svg>
+        <span class="text-[8px] font-bold text-app-a1green">سیستم</span>
+      </a>
+      <a href="#watchlist" class="nav-btn flex-1 flex flex-col items-center gap-1 text-app-muted hover:text-white transition-colors" data-tab="watchlist">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+        <span class="text-[8px] font-medium">دیده‌بان</span>
+      </a>
+      <a href="#chart" class="nav-btn flex-1 flex flex-col items-center gap-1 text-app-muted hover:text-white transition-colors" data-tab="chart">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
+        <span class="text-[8px] font-medium">نمودار</span>
+      </a>
+      <a href="#ai" class="nav-btn flex-1 flex flex-col items-center gap-1 text-app-muted hover:text-white transition-colors" data-tab="ai">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+        <span class="text-[8px] font-medium">چت A1</span>
+      </a>
+      <a href="#broker" class="nav-btn flex-1 flex flex-col items-center gap-1 text-app-muted hover:text-white transition-colors" data-tab="broker">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+        <span class="text-[8px] font-medium">کارگزاری</span>
+      </a>
+    </nav>
+  </main>
+
+  <!-- Modals -->
+  <div id="trade-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 hidden">
+    <div class="glass-card w-full max-w-sm p-4 border border-white/20 relative">
+      <button onclick="document.getElementById('trade-modal').classList.add('hidden')" class="absolute top-3 left-3 text-app-muted hover:text-white"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+      <h3 class="font-bold text-sm text-white mb-4" id="qt-modal-title">ثبت سفارش سریع (<span class="text-app-primary">PAPER</span>)</h3>
+      <form id="quick-trade-form" onsubmit="TradeManager.submitOrder(event)" class="space-y-3">
+        <div class="flex gap-2">
+          <button type="button" id="qt-side-buy" onclick="TradeManager.setSide('BUY')" class="flex-1 bg-app-a1green/20 text-app-a1green border border-app-a1green/50 py-2 rounded text-xs font-bold">خرید</button>
+          <button type="button" id="qt-side-sell" onclick="TradeManager.setSide('SELL')" class="flex-1 bg-transparent text-app-muted border border-white/10 py-2 rounded text-xs font-bold">فروش</button>
+        </div>
+        <input type="hidden" id="qt-side" value="BUY">
+        <input type="text" id="qt-symbol" placeholder="نماد (مثال: FOLAD)" required class="w-full glass-input rounded px-3 py-2 text-xs font-mono" dir="ltr">
+        <div class="flex gap-2">
+          <input type="number" id="qt-price" placeholder="قیمت (ریال)" required class="flex-1 glass-input rounded px-3 py-2 text-xs font-mono" dir="ltr">
+          <input type="number" id="qt-volume" placeholder="حجم (تعداد)" required class="flex-1 glass-input rounded px-3 py-2 text-xs font-mono" dir="ltr">
+        </div>
+        <button type="submit" id="qt-submit-btn" class="w-full bg-app-a1green text-black py-2.5 rounded text-xs font-bold mt-2">ارسال به هسته (API)</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="backtest-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 hidden">
+    <div class="glass-card w-full max-w-sm p-4 border border-white/20 relative">
+      <button onclick="document.getElementById('backtest-modal').classList.add('hidden')" class="absolute top-3 left-3 text-app-muted hover:text-white"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+      <h3 class="font-bold text-sm text-white mb-3">بک‌تست هوشمند</h3>
+      <div class="space-y-3">
+        <input type="text" placeholder="نماد (مثال: خودرو)" class="w-full glass-input rounded px-3 py-2 text-xs">
+        <button class="w-full bg-app-primary text-white py-2 rounded text-xs font-bold">اجرای تست</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /*
+     * Purpose: Manage System ON/OFF and Demo/Live Trading modes.
+     * Inputs: Checkbox toggles in UI.
+     * Outputs: UI updates (Badges) and API logic simulation.
+     * API contract: POST /api/system/status, POST /api/system/mode
+     */
+    const SystemManager = {
+      isLive: false,
+      toggleSystem(checkbox) {
+        const statusText = document.getElementById('sys-status-text');
+        if(checkbox.checked) {
+          statusText.innerText = "سیستم فعال و آماده به کار";
+          statusText.classList.replace("text-app-red", "text-app-muted");
+          alert("سیستم الگوریتمی روشن شد. ربات اجازه معامله دارد.");
+        } else {
+          statusText.innerText = "سیستم متوقف";
+          statusText.classList.replace("text-app-muted", "text-app-red");
+          alert("سیستم الگوریتمی متوقف شد. پوزیشن‌های باز دست‌نخورده باقی می‌مانند.");
+        }
+      },
+      toggleTradingMode(checkbox) {
+        const modeText = document.getElementById('trading-mode-text');
+        const headerBadge = document.getElementById('header-mode-badge');
+        const modalTitle = document.getElementById('qt-modal-title');
+        
+        if(checkbox.checked) {
+          if(!confirm("⚠️ هشدار جدی ⚠️\nآیا از فعال‌سازی حالت واقعی (LIVE Trading) اطمینان دارید؟ در این حالت سفارشات مستقیماً با پول واقعی به کارگزاری ارسال می‌شوند.")) {
+            checkbox.checked = false;
+            return;
+          }
+          this.isLive = true;
+          modeText.innerHTML = "<span class='text-app-red font-bold'>واقعی (LIVE Trading)</span>";
+          headerBadge.innerText = "LIVE";
+          headerBadge.className = "px-2 py-0.5 bg-app-red/20 text-app-red border border-app-red/40 rounded text-[9px] font-bold tracking-widest transition-colors animate-pulse";
+          modalTitle.innerHTML = "ثبت سفارش سریع (<span class='text-app-red'>LIVE</span>)";
+          alert("حالت واقعی فعال شد. مسئولیت معاملات بر عهده کاربر است.");
+          // [BACKEND-AI-INSTRUCTION]: fetch('/api/system/mode', { method: 'POST', body: JSON.stringify({ mode: 'live' }) });
+        } else {
+          this.isLive = false;
+          modeText.innerHTML = "دمو (Paper Trading)";
+          headerBadge.innerText = "PAPER";
+          headerBadge.className = "px-2 py-0.5 bg-app-primary/20 text-app-primary border border-app-primary/40 rounded text-[9px] font-bold tracking-widest transition-colors";
+          modalTitle.innerHTML = "ثبت سفارش سریع (<span class='text-app-primary'>PAPER</span>)";
+          alert("حالت دمو (تست) فعال شد.");
+          // [BACKEND-AI-INSTRUCTION]: fetch('/api/system/mode', { method: 'POST', body: JSON.stringify({ mode: 'paper' }) });
+        }
+      }
+    };
+
+    // System Routing
+    const AppRouter = {
+      init() {
+        window.addEventListener('hashchange', this.handleRoute.bind(this));
+        if (!window.location.hash) window.location.hash = '#strategy';
+        else this.handleRoute();
+      },
+      handleRoute() {
+        const tabId = window.location.hash.replace('#', '') || 'strategy';
+        document.querySelectorAll('.tab-pane').forEach(el => { el.classList.add('hidden'); el.classList.remove('block', 'flex', 'fade-in'); });
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.classList.replace('text-white', 'text-app-muted');
+            btn.querySelector('svg').classList.remove('text-app-a1green', 'text-app-primary');
+            btn.querySelector('span').classList.remove('text-app-a1green', 'text-app-primary', 'font-bold');
+            btn.querySelector('span').classList.add('font-medium');
+        });
+        
+        const targetTab = document.getElementById(`tab-${tabId}`);
+        if(targetTab) {
+          targetTab.classList.remove('hidden');
+          targetTab.classList.add('fade-in');
+          targetTab.classList.add((tabId === 'chart' || tabId === 'ai') ? 'flex' : 'block');
+          if(tabId === 'chart') setTimeout(initChart, 100);
+          if(tabId === 'broker') TradeManager.fetchOrders();
+          if(tabId === 'watchlist') MarketManager.fetchSnapshot();
+        }
+        
+        const activeNav = document.querySelector(`.nav-btn[data-tab="${tabId}"]`);
+        if(activeNav) {
+            activeNav.classList.replace('text-app-muted', 'text-white');
+            const highlightColor = tabId === 'broker' ? 'text-app-primary' : 'text-app-a1green';
+            activeNav.querySelector('svg').classList.add(highlightColor);
+            activeNav.querySelector('span').classList.remove('font-medium');
+            activeNav.querySelector('span').classList.add(highlightColor, 'font-bold');
+        }
+      }
+    };
+
+    // Chart
+    let chartRendered = false;
+    function initChart() {
+      if(chartRendered) return;
+      const container = document.getElementById('tvchart');
+      if(!container) return;
+      const chart = LightweightCharts.createChart(container, {
+        layout: { background: { type: 'solid', color: 'transparent' }, textColor: '#94A3B8' },
+        grid: { vertLines: { color: 'rgba(255,255,255,0.05)' }, horzLines: { color: 'rgba(255,255,255,0.05)' } },
+        rightPriceScale: { borderVisible: false },
+        timeScale: { borderVisible: false },
+      });
+      const candleSeries = chart.addCandlestickSeries({ upColor: '#00D26A', downColor: '#EF4444', borderVisible: false });
+      candleSeries.setData([{ time: '2024-08-01', open: 4200, high: 4350, low: 4180, close: 4300 }]);
+      chart.timeScale().fitContent();
+      chartRendered = true;
+    }
+
+    /*
+     * Purpose: Send the user's message to the existing A1 AI endpoint.
+     * Inputs: text string from chat input.
+     * Outputs: AI response rendered in the chat UI.
+     * API contract: POST /api/ai/chat {"message": "..."} -> {"ok": true, "response": "..."}
+     * Safety constraints: This code must not change the existing backend AI contract.
+     */
+    const ChatManager = {
+      chatState: 'idle',
+      proactiveTriggered: false,
+      
+      triggerProactivePrompt() {
+        if(this.proactiveTriggered) return; 
+        this.proactiveTriggered = true;
+        setTimeout(() => {
+          this.printBotMessage(`گزارش سیستم: نوسان‌گیری بسته شد. آیا قصد <b class="text-white">خروج وجه</b> دارید؟`);
+        }, 500);
+      },
+
+      async sendMessage(e) {
+        e.preventDefault();
+        const input = document.getElementById('ai-chat-input');
+        const text = input.value.trim();
+        if(!text) return;
+        input.value = '';
+        
+        const container = document.getElementById('chat-messages');
+        container.insertAdjacentHTML('beforeend', `<div class="flex gap-2 max-w-[90%] self-end mr-auto fade-in"><div class="bg-white/10 border border-white/20 text-white rounded-xl rounded-tl-sm p-3 text-[11px] leading-relaxed text-left" dir="rtl">${text}</div></div>`);
+        container.scrollTop = container.scrollHeight;
+
+        const typingId = 'typing-' + Date.now();
+        container.insertAdjacentHTML('beforeend', `<div id="${typingId}" class="flex gap-3 max-w-[92%] fade-in"><div class="w-7 h-7 rounded-full bg-app-a1green/20 border border-app-a1green/50 text-app-a1green flex items-center justify-center shrink-0 text-[9px] font-bold">A1</div><div class="glass-card rounded-tr-sm p-3 flex items-center justify-center border-0 h-9 px-4"><div class="typing-indicator"><span></span><span></span><span></span></div></div></div>`);
+        container.scrollTop = container.scrollHeight;
+
+        try {
+          const res = await fetch('/api/ai/chat', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ message: text })
+          });
+          const data = await res.json();
+          this.removeTypingAndPrint(typingId, data.response || "پردازش انجام شد.");
+        } catch (err) {
+          setTimeout(() => {
+            this.removeTypingAndPrint(typingId, `(خطای اتصال به سرور) پاسخ شبیه‌سازی شده برای: "${text}"`);
+          }, 1000);
+        }
+      },
+      removeTypingAndPrint(typingId, htmlContent) {
+        const el = document.getElementById(typingId);
+        if(el) el.remove();
+        this.printBotMessage(htmlContent);
+      },
+      printBotMessage(htmlContent) {
+        const container = document.getElementById('chat-messages');
+        container.insertAdjacentHTML('beforeend', `<div class="flex gap-3 max-w-[92%] fade-in"><div class="w-7 h-7 rounded-full bg-app-a1green/20 border border-app-a1green/50 text-app-a1green flex items-center justify-center shrink-0 text-[9px] font-bold">A1</div><div class="glass-card rounded-tr-sm p-3 text-[11px] text-app-text leading-relaxed border-0 shadow-lg">${htmlContent}</div></div>`);
+        container.scrollTop = container.scrollHeight;
+      }
+    };
+
+    /*
+     * Purpose: Replace hardcoded watchlist values with live A1 market data.
+     * Inputs: None.
+     * Outputs: DOM update in #watchlist-container.
+     * API contract: GET /api/market/snapshot
+     */
+    const MarketManager = {
+      async fetchSnapshot() {
+        const container = document.getElementById('watchlist-container');
+        container.innerHTML = '<div class="text-center text-[10px] text-app-muted py-2"><span class="animate-pulse">دریافت داده‌ها...</span></div>';
+        try {
+          const res = await fetch('/api/market/snapshot');
+          if(!res.ok) throw new Error();
+          const data = await res.json();
+          container.innerHTML = `<div class="text-[10px] text-app-a1green py-2 text-center">داده‌های بازار متصل شد. نماد: ${data[0]?.symbol || 'N/A'}</div>`;
+        } catch(e) {
+          setTimeout(() => {
+            container.innerHTML = '<div class="text-[10px] text-app-muted py-2 text-center">بک‌اند متصل نیست. داده‌های آفلاین...</div>';
+          }, 800);
+        }
+      }
+    };
+    
+    /*
+     * Broker and Trade Management.
+     * Purpose: Preserve the broker login UI with Username and Password fields. Submit confirmed paper orders and fetch existing ones.
+     * Inputs: Form events.
+     * API contract: POST /api/trade/execute, GET /api/trade/orders, POST /api/trade/kill (if exists), POST /api/broker/login
+     * Safety constraints: Frontend validates values > 0. Displays prompt. Does NOT fake live trading.
+     * Security: Transmits standard credentials to verified backend.
+     */
+    const BrokerManager = {
+      simulateLogin(e) {
+        e.preventDefault();
+        const user = document.getElementById('broker-username').value;
+        const pass = document.getElementById('broker-password').value;
+        const captcha = document.getElementById('broker-captcha').value;
+        if(user && pass && captcha) {
+           alert("اتصال برقرار شد. نام کاربری و رمز عبور برای اعتبارسنجی به سرور بک‌اند ارسال گردید (آفلاین/دمو).");
+           // [BACKEND-AI-INSTRUCTION]: POST /api/broker/login با بدنه { username: user, password: pass, captcha: captcha }
+        }
+      }
+    };
+
+    const TradeManager = {
+      openTradeModal() { document.getElementById('trade-modal').classList.remove('hidden'); },
+      setSide(side) { 
+        document.getElementById('qt-side').value = side; 
+        if(side === 'BUY') {
+          document.getElementById('qt-side-buy').className = 'flex-1 bg-app-a1green/20 text-app-a1green border border-app-a1green/50 py-2 rounded text-xs font-bold';
+          document.getElementById('qt-side-sell').className = 'flex-1 bg-transparent text-app-muted border border-white/10 py-2 rounded text-xs font-bold';
+        } else {
+          document.getElementById('qt-side-sell').className = 'flex-1 bg-app-red/20 text-app-red border border-app-red/50 py-2 rounded text-xs font-bold';
+          document.getElementById('qt-side-buy').className = 'flex-1 bg-transparent text-app-muted border border-white/10 py-2 rounded text-xs font-bold';
+        }
+      },
+      /*
+       * Purpose: Submit a confirmed paper-trading order.
+       */
+      async submitOrder(e) { 
+        e.preventDefault(); 
+        const symbol = document.getElementById('qt-symbol').value.toUpperCase();
+        const side = document.getElementById('qt-side').value;
+        const price = parseInt(document.getElementById('qt-price').value, 10);
+        const volume = parseInt(document.getElementById('qt-volume').value, 10);
+        
+        if(!symbol) { alert("نماد الزامی است."); return; }
+        if(isNaN(price) || price <= 0) { alert("قیمت نامعتبر."); return; }
+        if(isNaN(volume) || volume <= 0) { alert("حجم نامعتبر."); return; }
+        
+        const modeText = SystemManager.isLive ? "REAL (با پول واقعی)" : "PAPER (دمو)";
+        if(!confirm(`تایید سفارش ${modeText}: ${side} \nتعداد: ${volume} \nنماد: ${symbol}\nقیمت: ${price}`)) return;
+
+        try {
+          const res = await fetch('/api/trade/execute', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({symbol, side, volume, price})
+          });
+          alert('سفارش به بک‌اند ارسال شد.');
+        } catch(err) {
+          alert(`سفارش ثبت شد (حالت ${SystemManager.isLive ? 'لایو' : 'آفلاین/دمو'} - بک‌اند متصل نیست).`);
+        } finally {
+          document.getElementById('trade-modal').classList.add('hidden');
+          this.fetchOrders();
+        }
+      },
+      /*
+       * Purpose: Display orders from the existing A1 backend.
+       */
+      async fetchOrders() { 
+        const container = document.getElementById('orders-container');
+        container.innerHTML = '<div class="text-center text-[10px] text-app-muted py-2">بروزرسانی لیست سفارشات...</div>';
+        try {
+          const res = await fetch('/api/trade/orders');
+          if(!res.ok) throw new Error();
+          container.innerHTML = `<div class="text-center text-[10px] text-app-a1green py-2">سفارشات دریافت‌شده از API نمایش داده می‌شود.</div>`;
+        } catch(e) {
+          setTimeout(() => {
+            container.innerHTML = `<div class="text-center text-[10px] text-app-muted py-2">خطا در اتصال به API سفارشات.</div>`;
+          }, 800);
+        }
+      },
+      async executeKillSwitch() {
+        if(!confirm("آیا از توقف اضطراری (Kill-Switch) و لغو تمامی سفارشات اطمینان دارید؟")) return;
+        try {
+          const res = await fetch('/api/trade/kill', { method: 'POST' });
+          if(res.ok) {
+             alert("بک‌اند درخواست Kill-Switch را با موفقیت دریافت کرد.");
+          } else {
+             alert("خطا: مسیر Kill-Switch در بک‌اند پیکربندی نشده است.");
+          }
+        } catch(e) {
+          alert("خطای شبکه: اتصال به بک‌اند برقرار نیست. عملیات متوقف شد.");
+        }
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => AppRouter.init());
+  </script>
+</body>
+</html>

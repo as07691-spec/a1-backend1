@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A1 Agent | سامانه هوشمند معاملاتی</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;700&display=swap');
+        body { font-family: 'Vazirmatn', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+    <!-- صفحه ورود و احراز هویت کارگزاری -->
+    <div id="login-modal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-8 max-w-md w-full shadow-2xl">
+            <div class="text-center mb-6">
+                <div class="inline-flex items-center justify-center w-14 h-14 bg-blue-600/20 text-blue-500 rounded-xl mb-3 border border-blue-500/30">
+                    <span class="text-2xl font-bold">A1</span>
+                </div>
+                <h2 class="text-2xl font-bold text-white">ورود به A1 Agent</h2>
+                <p class="text-slate-400 text-sm mt-1">اتصال به حساب معاملاتی و کارگزاری</p>
+            </div>
+            <form id="broker-form" onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1">انتخاب کارگزاری</label>
+                    <select id="broker-select" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500">
+                        <option value="paper">حساب آزمایشی (Paper Trading)</option>
+                        <option value="mofid">کارگزاری مفید</option>
+                        <option value="agah">کارگزاری آگاه</option>
+                        <option value="farabi">کارگزاری فارابی</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1">نام کاربری / کلید وب‌سرویس</label>
+                    <input type="text" id="username" required value="amin_baloch" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1">رمز عبور / توکن دسترسی</label>
+                    <input type="password" id="password" required value="••••••••" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-blue-500">
+                </div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition-colors shadow-lg shadow-blue-600/30">
+                    اتصال و ورود به داشبورد
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- داشبورد اصلی -->
+    <div id="main-app" class="hidden min-h-screen flex flex-col">
+        <!-- هدر بالا -->
+        <header class="bg-slate-900/80 backdrop-blur border-b border-slate-800 sticky top-0 z-30 px-6 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <span class="text-xl font-bold bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">A1 Agent</span>
+                <span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs px-2.5 py-0.5 rounded-full flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    TSETMC متصل
+                </span>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="text-xs text-slate-400">کاربر: <span class="text-slate-200 font-semibold">Amin Baloch</span></div>
+                <button onclick="logout()" class="text-xs bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-700 transition-colors">خروج</button>
+            </div>
+        </header>
+
+        <div class="flex-1 flex overflow-hidden">
+            <!-- ناوبری عمودی -->
+            <aside class="w-64 bg-slate-900 border-l border-slate-800 flex flex-col p-4 space-y-1">
+                <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium bg-blue-600/10 text-blue-400 border border-blue-500/20 w-full text-right">
+                    <span>📊</span> داشبورد اصلی
+                </button>
+                <button onclick="switchTab('market')" id="tab-btn-market" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 w-full text-right">
+                    <span>📈</span> تحلیل بازار
+                </button>
+                <button onclick="switchTab('strategy')" id="tab-btn-strategy" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 w-full text-right">
+                    <span>⚡</span> استراتژی
+                </button>
+                <button onclick="switchTab('portfolio')" id="tab-btn-portfolio" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 w-full text-right">
+                    <span>💼</span> سبد سهام
+                </button>
+                <button onclick="switchTab('settings')" id="tab-btn-settings" class="tab-btn flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-400 hover:bg-slate-800/60 hover:text-slate-200 w-full text-right">
+                    <span>⚙️</span> تنظیمات
+                </button>
+            </aside>
+
+            <!-- محتوای تب‌ها و پنل هوش مصنوعی -->
+            <main class="flex-1 overflow-y-auto p-6 flex gap-6">
+                <div class="flex-1 space-y-6">
+                    <!-- محتوای تب داشبورد -->
+                    <div id="tab-content-dashboard" class="tab-pane space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+                                <div class="text-xs text-slate-400">وضعیت Agent</div>
+                                <div class="text-xl font-bold text-emerald-400 mt-1">فعال (Active)</div>
+                            </div>
+                            <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+                                <div class="text-xs text-slate-400">ارزش کل پورتفولیو</div>
+                                <div class="text-xl font-bold text-slate-100 mt-1">۰ ریال</div>
+                            </div>
+                            <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+                                <div class="text-xs text-slate-400">ریسک کلی</div>
+                                <div class="text-xl font-bold text-blue-400 mt-1">کم‌ریسک (Low)</div>
+                            </div>
+                            <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl">
+                                <div class="text-xs text-slate-400">منبع داده</div>
+                                <div class="text-xl font-bold text-indigo-400 mt-1">TSETMC Live</div>
+                            </div>
+                        </div>
+                        <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl">
+                            <h3 class="text-base font-bold mb-4">دیده‌بان بازار بورس تهران</h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-sm text-right">
+                                    <thead class="text-xs text-slate-400 bg-slate-800/50">
+                                        <tr>
+                                            <th class="p-3">نماد</th>
+                                            <th class="p-3">قیمت پایانی</th>
+                                            <th class="p-3">تغییر روزانه</th>
+                                            <th class="p-3">ارزش معاملات</th>
+                                            <th class="p-3">وضعیت سیگنال</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="market-table-body" class="divide-y divide-slate-800">
+                                        <tr>
+                                            <td class="p-3 font-semibold">فولاد</td>
+                                            <td class="p-3">۵,۴۲۰</td>
+                                            <td class="p-3 text-emerald-400">+۲.۴٪</td>
+                                            <td class="p-3">۱۲۴ میلیارد ریال</td>
+                                            <td class="p-3"><span class="bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded text-xs">خرید پله‌ای</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td class="p-3 font-semibold">شپنا</td>
+                                            <td class="p-3">۴,۱۸۰</td>
+                                            <td class="p-3 text-emerald-400">+۱.۸٪</td>
+                                            <td class="p-3">۹۸ میلیارد ریال</td>
+                                            <td class="p-3"><span class="bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded text-xs">نگهداری</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- تب تحلیل بازار -->
+                    <div id="tab-content-market" class="tab-pane hidden space-y-6">
+                        <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl">
+                            <h3 class="text-base font-bold mb-2">تحلیل جریان نقدینگی و پول هوشمند</h3>
+                            <p class="text-sm text-slate-400">داده‌های استخراج‌شده از CDN TSETMC آماده پردازش توسط مدل‌های رگرسیونی است.</p>
+                        </div>
+                    </div>
+
+                    <!-- تب استراتژی -->
+                    <div id="tab-content-strategy" class="tab-pane hidden space-y-6">
+                        <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl">
+                            <h3 class="text-base font-bold mb-2">استراتژی‌های فعال معاملاتی</h3>
+                            <p class="text-sm text-slate-400">سیستم تایید سیگنال‌ها مبتنی بر شکست سطوح و نسبت قدرت خریدار به فروشنده.</p>
+                        </div>
+                    </div>
+
+                    <!-- تب سبد سهام -->
+                    <div id="tab-content-portfolio" class="tab-pane hidden space-y-6">
+                        <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl">
+                            <h3 class="text-base font-bold mb-2">مدیریت پورتفولیو و موتور ریسک</h3>
+                            <p class="text-sm text-slate-400">ماژول‌های `portfolio.py` و `risk.py` آماده ثبت سفارش‌ها و کنترل ارزش در معرض ریسک (VaR).</p>
+                        </div>
+                    </div>
+
+                    <!-- تب تنظیمات -->
+                    <div id="tab-content-settings" class="tab-pane hidden space-y-6">
+                        <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl">
+                            <h3 class="text-base font-bold mb-2">تنظیمات هسته و سرویس</h3>
+                            <p class="text-sm text-slate-400">مسیر دایرکتوری: `/opt/a1/backend` | پورت: ۸۰۰۰</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- پنل اختصاصی هوش مصنوعی (AI Copilot) -->
+                <div class="w-96 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col h-[calc(100vh-6rem)] sticky top-20">
+                    <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-ping"></div>
+                            <span class="font-bold text-sm">دستیار هوشمند A1 Copilot</span>
+                        </div>
+                        <span class="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-slate-400">Coding & Analysis</span>
+                    </div>
+                    <div id="ai-chat-box" class="flex-1 p-4 overflow-y-auto space-y-3 text-xs">
+                        <div class="bg-slate-800/70 p-3 rounded-xl border border-slate-700/50">
+                            سلام Amin Baloch عزیز. هسته A1 فعال است و به بازار TSETMC و ماژول مدیریت ریسک متصل شده‌ام. چه تحلیلی مدنظر شماست؟
+                        </div>
+                    </div>
+                    <div class="p-3 border-t border-slate-800">
+                        <form onsubmit="handleAiSend(event)" class="flex gap-2">
+                            <input id="ai-input" type="text" placeholder="درخواست تحلیل نماد یا کدنویسی..." class="flex-1 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-blue-500">
+                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded-lg text-xs font-medium">ارسال</button>
+                        </form>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        function handleLogin(e) {
+            e.preventDefault();
+            document.getElementById('login-modal').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
+        }
+        function logout() {
+            document.getElementById('main-app').classList.add('hidden');
+            document.getElementById('login-modal').classList.remove('hidden');
+        }
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('bg-blue-600/10', 'text-blue-400', 'border', 'border-blue-500/20');
+                el.classList.add('text-slate-400');
+            });
+            document.getElementById('tab-content-' + tabId).classList.remove('hidden');
+            const activeBtn = document.getElementById('tab-btn-' + tabId);
+            activeBtn.classList.remove('text-slate-400');
+            activeBtn.classList.add('bg-blue-600/10', 'text-blue-400', 'border', 'border-blue-500/20');
+        }
+        function handleAiSend(e) {
+            e.preventDefault();
+            const input = document.getElementById('ai-input');
+            const msg = input.value.trim();
+            if (!msg) return;
+            const chatBox = document.getElementById('ai-chat-box');
+            chatBox.innerHTML += `<div class="bg-blue-600/20 border border-blue-500/30 p-3 rounded-xl text-blue-200 text-right">${msg}</div>`;
+            input.value = '';
+            setTimeout(() => {
+                chatBox.innerHTML += `<div class="bg-slate-800/70 p-3 rounded-xl border border-slate-700/50">درخواست شما دریافت شد؛ وضعیت ریسک و داده‌های نماد بررسی شد: وضعیت مطلوب است.</div>`;
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }, 600);
+        }
+    </script>
+</body>
+</html>

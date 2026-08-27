@@ -1,0 +1,26 @@
+[Unit]
+Description=A1 Dahl/HCNSEC LLM Router
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/opt/a1/backend
+EnvironmentFile=-/etc/a1-agent/dahl.env
+EnvironmentFile=/etc/a1-agent/hcnsec.env
+ExecStart=/opt/a1/venv/bin/python -m uvicorn chatbox_adapter:app --host 127.0.0.1 --port 8001 --workers 1
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/opt/a1
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target

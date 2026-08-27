@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "initial_cash": 1000000000.0,
+  "cash": 999870000.0,
+  "realized_pnl": 0.0,
+  "orders": [
+    {
+      "order_id": "cc3530eb-e4c7-4a84-b0ac-9abf8d249dc0",
+      "client_order_id": "stage14-buy-20260815_043209",
+      "symbol": "FOOLAD",
+      "side": "buy",
+      "quantity": 10,
+      "order_type": "market",
+      "status": "filled",
+      "filled_quantity": 10,
+      "average_fill_price": 1000.0,
+      "gross_amount": 10000.0,
+      "realized_pnl": 0.0,
+      "broker_mode": "paper",
+      "created_at": "2026-08-15T04:32:14.535466+00:00",
+      "updated_at": "2026-08-15T04:32:14.535466+00:00",
+      "idempotent_replay": false
+    },
+    {
+      "order_id": "b13cf81d-af08-41b5-9b7a-2ace9ce30a8c",
+      "client_order_id": "stage15-20260815043938803667-buy",
+      "symbol": "FOOLAD",
+      "side": "buy",
+      "quantity": 1,
+      "order_type": "market",
+      "status": "filled",
+      "filled_quantity": 1,
+      "average_fill_price": 1000.0,
+      "gross_amount": 1000.0,
+      "realized_pnl": 0.0,
+      "broker_mode": "paper",
+      "created_at": "2026-08-15T04:39:38.805724+00:00",
+      "updated_at": "2026-08-15T04:39:38.805724+00:00",
+      "idempotent_replay": false
+    },
+    {
+      "order_id": "ad6298f0-b061-4e1c-82a1-dfa0a70397b2",
+      "client_order_id": "stage15-20260815043938803667-sell",
+      "symbol": "FOOLAD",
+      "side": "sell",
+      "quantity": 1,
+      "order_type": "market",
+      "status": "filled",
+      "filled_quantity": 1,
+      "average_fill_price": 1000.0,
+      "gross_amount": 1000.0,
+      "realized_pnl": 0.0,
+      "broker_mode": "paper",
+      "created_at": "2026-08-15T04:39:38.810575+00:00",
+      "updated_at": "2026-08-15T04:39:38.810575+00:00",
+      "idempotent_replay": false
+    },
+    {
+      "order_id": "ecc2b08e-3c36-431d-98a7-3067b58f6af5",
+      "client_order_id": "a1fd85ce-b381-49e6-95d1-09951c0bb71f",
+      "symbol": "BTC",
+      "side": "buy",
+      "quantity": 1,
+      "order_type": "market",
+      "status": "filled",
+      "filled_quantity": 1,
+      "average_fill_price": 60000.0,
+      "gross_amount": 60000.0,
+      "realized_pnl": 0.0,
+      "broker_mode": "paper",
+      "created_at": "2026-08-15T13:31:40.168389+00:00",
+      "updated_at": "2026-08-15T13:31:40.168389+00:00",
+      "idempotent_replay": false
+    },
+    {
+      "order_id": "722f832b-5f01-4889-b60c-6cce0276d6f6",
+      "client_order_id": "23cd43b1-96c6-422b-9673-dee2e8a1e7c9",
+      "symbol": "BTC",
+      "side": "buy",
+      "quantity": 1,
+      "order_type": "market",
+      "status": "filled",
+      "filled_quantity": 1,
+      "average_fill_price": 60000.0,
+      "gross_amount": 60000.0,
+      "realized_pnl": 0.0,
+      "broker_mode": "paper",
+      "created_at": "2026-08-15T13:38:49.204607+00:00",
+      "updated_at": "2026-08-15T13:38:49.204607+00:00",
+      "idempotent_replay": false
+    }
+  ],
+  "positions": {
+    "FOOLAD": {
+      "symbol": "FOOLAD",
+      "quantity": 10,
+      "average_price": 1000.0,
+      "last_price": 1000.0
+    },
+    "BTC": {
+      "symbol": "BTC",
+      "quantity": 2,
+      "average_price": 60000.0,
+      "last_price": 60000.0
+    }
+  },
+  "updated_at": "2026-08-15T13:38:49.204780+00:00"
+}
