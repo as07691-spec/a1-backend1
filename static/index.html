@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-<!-- Purpose: A1 Agent Mobile UI - Phase 27 (Dashboard, AI/Market, Strategy, Portfolio) -->
+<!-- Purpose: A1 Agent Mobile UI - Phase 28 Complete 5-Tab Integration -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>A1 Agent Pro</title>
 <style>
-/* Logic: Dark glassmorphism, high contrast, mobile ergonomics */
+/* Logic: Dark theme, high contrast, mobile ergonomics */
 :root{--bg:#0b0e14;--card:#151a24;--card-border:#232a38;--acc:#3b82f6;--up:#22c55e;--dn:#ef4444;--warn:#f59e0b;--tx:#e5e7eb;--mut:#94a3b8}
 *{box-sizing:border-box;margin:0;padding:0;font-family:'Vazirmatn',system-ui,sans-serif}
-body{background:var(--bg);color:var(--tx);min-height:100vh;padding-bottom:76px}
+body{background:var(--bg);color:var(--tx);min-height:100vh;padding-bottom:80px}
 header{position:sticky;top:0;z-index:10;display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:rgba(11,14,20,.85);backdrop-filter:blur(8px);border-bottom:1px solid var(--card-border)}
 header h1{font-size:1.05rem;font-weight:700}
 .header-actions{display:flex;align-items:center;gap:8px}
@@ -28,7 +28,7 @@ header h1{font-size:1.05rem;font-weight:700}
 .row:last-child{border:none}
 .up{color:var(--up)}.dn{color:var(--dn)}.warn{color:var(--warn)}
 .tabbar{position:fixed;bottom:0;right:0;left:0;display:flex;background:var(--card);border-top:1px solid var(--card-border);z-index:20}
-.tabbar button{flex:1;background:none;border:none;color:var(--mut);padding:10px 0 8px 0;font-size:.68rem;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px}
+.tabbar button{flex:1;background:none;border:none;color:var(--mut);padding:10px 0 8px 0;font-size:.65rem;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px}
 .tabbar button.active{color:var(--acc);font-weight:700}
 button.act{width:100%;background:var(--acc);color:#fff;border:none;border-radius:10px;padding:11px;font-weight:700;font-size:.85rem;cursor:pointer}
 button.act-sec{background:#1e293b;color:var(--tx);border:1px solid var(--card-border);margin-top:6px}
@@ -101,15 +101,6 @@ button.act-sec{background:#1e293b;color:var(--tx);border:1px solid var(--card-bo
   </div>
 
   <div class="card">
-    <h3>ثبت سفارش جدید</h3>شن (RTM Supply/Demand)</option>
-        <option value="VOLATILITY_BREAKOUT">۳. شکست نوسان (Volatility Breakout)</option>
-      </select>
-    </div>
-    <button class="act" onclick="evaluateStrategy()">ارزیابی وضعیت استراتژی</button>
-    <div id="strat-result" style="margin-top:10px;font-size:.85rem"></div>
-  </div>
-
-  <div class="card">
     <h3>ثبت سفارش جدید</h3>
     <div class="form-group">
       <label>نماد:</label>
@@ -128,19 +119,66 @@ button.act-sec{background:#1e293b;color:var(--tx);border:1px solid var(--card-bo
         </select>
       </div>
     </div>
-    <button class="act" onclick="executeTrade()">pi"><h3>سود/زیان کل</h3><div class="v" id="p-pnl">—</div></div>
+    <button class="act" onclick="executeTrade()">ارسال سفارش</button>
+    <div id="trade-result" style="margin-top:10px;font-size:.85rem"></div>
+  </div>
+</section>
+
+<!-- ============ TAB 4: PORTFOLIO ============ -->
+<section id="tab-port" class="page">
+  <div class="kpis">
+    <div class="kpi"><h3>ارزش کل پورتفوی</h3><div class="v" id="p-total">—</div></div>
+    <div class="kpi"><h3>سود/زیان کل</h3><div class="v" id="p-pnl">—</div></div>
   </div>
   <div class="card">
-    <h3>دارایی‌ها و موقعیت‌ها <span style="font-size:.7rem;color:var(--mut);cursor:pointer" onclick="loadPortfolio()">🔄 رفرش</span></h3>
-    <div id="portfolio-list">در حال بارگذاری…</div>
+    <h3>دارایی‌ها و موقعیت‌ها <span style="font-size:.7rem;color:var(--mut);margin-top:10px;font-size:.85rem"></div>
+    </div>
   </div>
+</section>
+
+<!-- ============ TAB 5: SETTINGS & SYSTEM CONTROL ============ -->
+<section id="tab-sett" class="page">
   <div class="card">
-    <h3>سنجش ریسک سفارش قبل از ارسال</h3>
-    <div class="form-group">
       <label>بررسی حد ریسک برای نماد و حجم فعلی:</label>
       <button class="act act-sec" onclick="checkRisk()">بررسی ریسک پورتفوی</button>
       <div id="risk-result" style="margin-top:10px;font-size:.85rem"></div>
     </div>
+  </div>
+</section>
+
+<!-- ============ TAB 5: SETTINGS & SYSTEM CONTROL ============ -->
+<section id="tab-sett" class="page">
+  <div class="card">
+    <h3>حالت معاملاتی سیستم (Trading Mode)</h3>
+    <div class="form-group">
+      <label>حالت فعلی:</label>
+      <select id="sys-mode" class="select-in">
+        <option value="PAPER">شبیه‌ساز (PAPER - بدون ریسک مالی)</option>
+        <option value="LIVE">معاملات واقعی (LIVE - متصل به حساب)</option>
+      </select>
+    </div>
+    <button class="act" onclick="updateTradingMode()">ذخیره و تغییر حالت</button>
+    <div id="mode-result" style="margin-top:10px;font-size:.85rem"></div>
+  </div>
+
+  <div class="card">
+    <h3>اتصال کارگزاری (Broker Connection)</h3>
+    <div class="form-group">
+      <label>کارگزاری:</label>
+      <select id="broker-name" class="select-in">
+        <option value="mofid">کارگزاری مفید (EasyTrader API)</option>
+        <option value="agah">کارگزاری آگاه (AsaTrader API)</option>
+        <option value="farabixo">کارگزاری فارابی (Farabixo API)</option>
+      </select>
+    </div>
+    <button class="act act-sec" onclick="connectBroker()">بررسی و اتصال به کارگزاری</button>
+    <div id="broker-result" style="margin-top:10px;font-size:.85rem"></div>
+  </div>
+
+  <div class="card">
+    <h3>وضعیت زیرساخت و مخزن Git</h3>
+    <div id="git-info" style="font-size:.82rem;color:var(--mut);line-height:1.6">در حال دریافت وضعیت Git…</div>
+    <button class="act act-sec" onclick="loadGitStatus()">بروزرسانی وضعیت Git</button>
   </div>
 </section>
 
@@ -150,10 +188,11 @@ button.act-sec{background:#1e293b;color:var(--tx);border:1px solid var(--card-bo
   <button data-tab="tab-ai" onclick="go(this)"><span>🧠</span>تحلیل AI</button>
   <button data-tab="tab-strat" onclick="go(this)"><span>⚡</span>استراتژی</button>
   <button data-tab="tab-port" onclick="go(this)"><span>💼</span>پورتفوی</button>
+  <button data-tab="tab-sett" onclick="go(this)"><span>⚙️</span>تنظیمات</button>
 </nav>
 
 <script>
-/* Purpose: Frontend controller for all 4 subsystems. Zero external deps. */
+/* Purpose: Frontend controller for all 5 subsystems. Zero external deps. */
 const API='http://127.0.0.1:8000';
 const $=id=>document.getElementById(id);
 
@@ -163,6 +202,7 @@ function go(btn){
   $(btn.dataset.tab).classList.add('active');
   btn.classList.add('active');
   if(btn.dataset.tab==='tab-port') loadPortfolio();
+  if(btn.dataset.tab==='tab-sett') loadGitStatus();
 }
 
 // --- TAB 1: Dashboard ---
@@ -279,6 +319,41 @@ async function checkRisk(){
     })).json();
     $('risk-result').innerHTML=`وضعیت ریسک: <b class="${d.approved?'up':'dn'}">${d.approved?'مجاز (تأیید شد)':'غیرمجاز (رد شد)'}</b> | دلیل: ${d.reason??'سفارش درون محدوده ریسک پورتفوی است'}`;
   }catch(e){$('risk-result').textContent='خطا در بررسی ریسک پورتفوی';}
+}
+
+// --- TAB 5: Settings & Git Operations ---
+async function updateTradingMode(){
+  const m=$('sys-mode').value;
+  try{
+    const d=await(await fetch(API+'/api/system/mode',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({mode:m})
+    })).json();
+    const b=$('mode-badge');
+    b.textContent=m;
+    b.className='badge '+(m==='LIVE'?'badge-live':'badge-paper');
+    $('mode-result').innerHTML=`<span class="up">حالت به ${m} تغییر یافت</span>`;
+  }catch(e){$('mode-result').innerHTML='<span class="dn">خطا در تغییر حالت</span>';}
+}
+
+async function connectBroker(){
+  const brk=$('broker-name').value;
+  try{
+    const d=await(await fetch(API+'/api/broker/login',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({broker:brk})
+    })).json();
+    $('broker-result').innerHTML=`<span class="up">وضعیت: ${d.status} | ${d.account_title}</span>`;
+  }catch(e){$('broker-result').innerHTML='<span class="dn">خطا در اتصال به کارگزاری</span>';}
+}
+
+async function loadGitStatus(){
+  try{
+    const d=await(await fetch(API+'/api/v1/git/status')).json();
+    $('git-info').innerHTML=`شاخه فعال: <b>${d.branch??'—'}</b><br>وضعیت تغییرات: <b>${d.clean?'تمیز (Clean)':'دارای تغییرات ثبت‌نشده'}</b><br>آخرین کامیت: <code>${d.latest_commit??'—'}</code>`;
+  }catch(e){$('git-info').textContent='خطا در خواندن وضعیت مخزن';}
 }
 
 // Initial Boot
