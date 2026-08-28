@@ -1,440 +1,130 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>A1 Studio Pro - Trading & Market Terminal</title>
-    <style>
-        :root {
-            --bg-color: #0b0f19;
-            --card-bg: #151d30;
-            --card-sub: #0f1624;
-            --accent-color: #2563eb;
-            --buy-color: #10b981;
-            --sell-color: #ef4444;
-            --text-color: #f3f4f6;
-            --text-muted: #9ca3af;
-            --border-color: #2e384d;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-color); padding: 12px; display: flex; justify-content: center; min-height: 100vh; }
-        .container { width: 100%; max-width: 520px; display: flex; flex-direction: column; gap: 14px; }
-        
-        .header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border-color); }
-        .status-badge { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: bold; color: var(--buy-color); }
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; background-color: var(--buy-color); box-shadow: 0 0 8px var(--buy-color); }
-
-        .nav-tabs { display: flex; background: var(--card-bg); border-radius: 10px; padding: 4px; border: 1px solid var(--border-color); gap: 4px; }
-        .tab-btn { flex: 1; min-width: 60px; padding: 10px 4px; border: none; background: transparent; color: var(--text-muted); font-size: 12px; font-weight: bold; cursor: pointer; border-radius: 8px; transition: 0.2s; text-align: center; }
-        .tab-btn.active { background: var(--accent-color); color: #fff; }
-
-        .tab-content { display: none; flex-direction: column; gap: 14px; }
-        .tab-content.active { display: flex; }
-
-        .card { background: var(--card-bg); border-radius: 12px; padding: 16px; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 12px; }
-        .card-title { font-size: 14px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
-
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .stat-box { background: var(--card-sub); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); }
-        .stat-label { font-size: 11px; color: var(--text-muted); }
-        .stat-value { font-size: 13px; font-weight: bold; margin-top: 4px; }
-        .stat-green { color: var(--buy-color); }
-        .stat-red { color: var(--sell-color); }
-
-        .form-group { display: flex; flex-direction: column; gap: 6px; }
-        label { font-size: 12px; color: var(--text-muted); }
-        input { background: var(--card-sub); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; color: #fff; font-size: 14px; outline: none; }
-        input:focus { border-color: var(--accent-color); }
-        
-        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 6px; }
-        .btn { padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px; transition: 0.2s; color: #fff; text-align: center; }
-        .btn-buy { background: var(--buy-color); }
-        .btn-sell { background: var(--sell-color); }
-
-        .item-list { list-style: none; display: flex; flex-direction: column; gap: 8px; max-height: 280px; overflow-y: auto; }
-        .item-card { background: var(--card-sub); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
-        .badge { padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
-        .badge-buy { background: rgba(16, 185, 129, 0.2); color: var(--buy-color); }
-        .badge-sell { background: rgba(239, 68, 68, 0.2); color: var(--sell-color); }
-        .badge-risk-ok { background: rgba(16, 185, 129, 0.2); color: var(--buy-color); }
-        .badge-risk-err { background: rgba(239, 68, 68, 0.2); color: var(--sell-color); }
-
-        #response-msg { font-size: 12px; text-align: center; min-height: 18px; line-height: 1.4; }
-    </style>
+<!-- Purpose: A1 Agent mobile-first UI, Phase 26 (Dashboard + Market/AI tabs) -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>A1 Agent</title>
+<style>
+/* Logic: Dark glassmorphism theme, mobile-first, bottom tab bar */
+:root{--bg:#0b0e14;--card:#151a24;--acc:#3b82f6;--up:#22c55e;--dn:#ef4444;--tx:#e5e7eb;--mut:#94a3b8}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Vazirmatn',system-ui,sans-serif}
+body{background:var(--bg);color:var(--tx);min-height:100vh;padding-bottom:70px}
+header{position:sticky;top:0;z-index:9;display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:rgba(11,14,20,.85);backdrop-filter:blur(8px)}
+header h1{font-size:1.05rem}
+.badge{font-size:.65rem;padding:3px 8px;border-radius:99px;background:#134e4a;color:#5eead4}
+.page{padding:16px;display:none}
+.page.active{display:block}
+.card{background:var(--card);border:1px solid #232a38;border-radius:14px;padding:14px;margin-bottom:12px}
+.card h3{font-size:.85rem;color:var(--mut);margin-bottom:10px}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kpi{background:var(--card);border:1px solid #232a38;border-radius:14px;padding:12px}
+.kpi .v{font-size:1.15rem;font-weight:700;margin-top:4px}
+.row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #1c2330;font-size:.85rem}
+.row:last-child{border:none}
+.up{color:var(--up)}.dn{color:var(--dn)}
+.tabbar{position:fixed;bottom:0;right:0;left:0;display:flex;background:var(--card);border-top:1px solid #232a38}
+.tabbar button{flex:1;background:none;border:none;color:var(--mut);padding:12px 0;font-size:.72rem;cursor:pointer}
+.tabbar button.active{color:var(--acc)}
+button.act{width:100%;background:var(--acc);color:#fff;border:none;border-radius:10px;padding:12px;font-weight:700;cursor:pointer}
+.chatbox{height:46vh;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.msg{max-width:82%;padding:10px 12px;border-radius:14px;font-size:.83rem;line-height:1.7}
+.msg.bot{background:var(--card);align-self:flex-start}
+.msg.me{background:var(--acc);align-self:flex-end}
+.chatin{display:flex;gap:8px}
+.chatin input{flex:1;background:#0f1420;border:1px solid #232a38;border-radius:10px;padding:11px;color:var(--tx)}
+</style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div>
-                <strong>A1 Studio Pro</strong>
-                <span style="font-size: 11px; color: var(--text-muted); margin-right: 4px;">فاز ۲۳</span>
-            </div>
-            <div class="status-badge">
-                <span class="status-dot"></span>
-                <span>متصل به هسته</span>
-            </div>
-        </div>
+<header><h1>🤖 A1 Agent</h1><span id="svc-badge" class="badge">● LIVE</span></header>
 
-        <div class="nav-tabs">
-            <button class="tab-btn active" onclick="switchTab('tab-market')">دیده‌بان</button>
-            <button class="tab-btn" onclick="switchTab('tab-trade')">معامله</button>
-            <button class="tab-btn" onclick="switchTab('tab-portfolio')">پورتفوی</button>
-            <button class="tab-btn" onclick="switchTab('tab-risk')">ریسک</button>
-        </div>
+<!-- ============ TAB 1: DASHBOARD ============ -->
+<section id="tab-dash" class="page active">
+  <div class="kpis">
+    <div class="kpi"><h3>شاخص کل</h3><div class="v" id="k-index">—</div></div>
+    <div class="kpi"><h3>ارزش بازار (هم‌وزن)</h3><div class="v" id="k-equal">—</div></div>
+  </div>
+  <div class="card">
+    <h3>دیده‌بان بازار — Snapshot زنده</h3>
+    <div id="watchlist">در حال بارگذاری…</div>
+  </div>
+  <div class="card">
+    <h3>وضعیت موتور AI</h3>
+    <div id="ai-status">—</div>
+    <br><button class="act" onclick="runAnalysis()">اجرای تحلیل بازار با AI</button>
+    <div id="ai-result" style="margin-top:10px"></div>
+  </div>
+</section>
 
-        <!-- TAB 0: MARKET -->
-        <div id="tab-market" class="tab-content active">
-            <div class="card">
-                <div class="card-title">شاخص کل بورس تهران</div>
-                <div class="grid-2">
-                    <div class="stat-box">
-                        <div class="stat-label">مقدار شاخص کل</div>
-                        <div class="stat-value" id="market-index">---</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-label">تغییر روزانه</div>
-                        <div class="stat-value stat-green" id="market-index-change">---</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">
-                    <span>دیده‌بان نمادهای شاخص</span>
-                    <span style="font-size: 11px; color: var(--text-muted);">زنده (۵ ثانیه)</span>
-                </div>
-                <ul class="item-list" id="market-quotes-list">
-                    <li style="text-align: center; color: var(--text-muted); padding: 10px;">در حال بارگذاری...</li>
-                </ul>
-            </div>
-        </div>
-
-        <!-- TAB 1: TRADING -->
-        <div id="tab-trade" class="tab-content">
-            <div class="card">
-                <div class="card-title">ثبت سفارش هوشمند</div>
-                <div class="form-group">
-                    <label for="symbol">نماد معاملاتی</label>
-                    <input type="text" id="symbol" placeholder="مثال: فولاد" value="فولاد">
-                </div>
-                <div class="grid-2">
-                    <div class="form-group">
-                        <label for="quantity">حجم / تعداد</label>
-                        <input type="number" id="quantity" value="1000">
-                    </div>
-                    <div class="form-group">
-                        <label for="price">قیمت واحد (ریال)</label>
-                        <input type="number" id="price" value="5000">
-                    </div>
-                </div>
-                <div class="btn-group">
-                    <button class="btn btn-buy" onclick="submitOrder('BUY')">خرید</button>
-                    <button class="btn btn-sell" onclick="submitOrder('SELL')">فروش</button>
-                </div>
-                <div id="response-msg"></div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">تاریخچه سفارشات</div>
-                <ul class="item-list" id="order-list">
-                    <li style="text-align: center; color: var(--text-muted); padding: 10px;">در حال بارگذاری...</li>
-                </ul>
-            </div>
-        </div>
-
-        <!-- TAB 2: PORTFOLIO -->
-        <div id="tab-portfolio" class="tab-content">
-            <div class="card">
-                <div class="card-title">وضعیت سبد دارایی</div>
-                <div class="grid-2">
-                    <div class="stat-box">
-                        <div class="stat-label">ارزش کل سبد</div>
-                        <div class="stat-value" id="port-total-val">---</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-label">مانده نقدینگی</div>
-                        <div class="stat-value" id="port-cash">---</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-label">سود/زیان تحقق نیافته</div>
-                        <div class="stat-value" id="port-pnl">---</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-label">بازده کل</div>
-                        <div class="stat-value" id="port-return">---</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-title">موقعیت‌های باز</div>
-                <ul class="item-list" id="positions-list">
-                    <li style="text-align: center; color: var(--text-muted); padding: 10px;">در حال بارگذاری...</li>
-                </ul>
-            </div>
-        </div>
-
-        <!-- TAB 3: RISK -->
-        <div id="tab-risk" class="tab-content">
-            <div class="card">
-                <div class="card-title">ارزیابی ریسک پیش از معامله</div>
-                <div class="form-group">
-                    <label for="risk-symbol">نماد</label>
-                    <input type="text" id="risk-symbol" value="فولاد">
-                </div>
-                <div class="grid-2">
-                    <div class="form-group">
-                        <label for="risk-quantity">تعداد</label>
-                        <input type="number" id="risk-quantity" value="20000">
-                    </div>
-                    <div class="form-group">
-                        <label for="risk-price">قیمت (ریال)</label>
-                        <input type="number" id="risk-price" value="5500">
-                    </div>
-                </div>
-                <button class="btn" style="background: var(--accent-color); margin-top: 6px;" onclick="checkRisk()">بررسی ریسک</button>
-                <div id="risk-result" style="margin-top: 8px;"></div>
-            </div>
-        </div>
+<!-- ============ TAB 2: MARKET / AI ANALYSIS ============ -->
+<section id="tab-ai" class="page">
+  <div class="card">
+    <h3>گفتگو با تحلیلگر AI</h3>
+    <div class="chatbox" id="chat">
+      <div class="msg bot">سلام! من A1 هستم. آماده دریافت دستورات شما.</div>
     </div>
+    <div class="chatin">
+      <input id="chat-input" placeholder="پیام شما…">
+      <button class="act" style="width:auto;padding:11px 18px" onclick="sendChat()">ارسال</button>
+    </div>
+  </div>
+</section>
 
-    <script>
-        function toPersianDigits(n) {
-            if (n === null || n === undefined) return '';
-            const f = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
-            return n.toString().replace(/[0-9]/g, w => f[+w]);
-        }
+<!-- ============ BOTTOM TAB BAR ============ -->
+<nav class="tabbar">
+  <button class="active" data-tab="tab-dash" onclick="go(this)">📊 داشبورد</button>
+  <button data-tab="tab-ai" onclick="go(this)">🧠 تحلیل بازار/AI</button>
+</nav>
 
-        function formatCurrency(val) {
-            if (val === null || val === undefined || isNaN(val)) return '۰';
-            return toPersianDigits(Number(val).toLocaleString('fa-IR'));
-        }
+<script>
+/* Purpose: Frontend controller. Logic: calls existing backend contracts only. */
+const API='http://127.0.0.1:8000';
+const $=id=>document.getElementById(id);
 
-        function selectTicker(symbol, price) {
-            document.getElementById('symbol').value = symbol;
-            document.getElementById('price').value = price;
-            document.getElementById('risk-symbol').value = symbol;
-            document.getElementById('risk-price').value = price;
-            switchTab('tab-trade');
-        }
+function go(btn){ // Simple hash-free tab router
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tabbar button').forEach(b=>b.classList.remove('active'));
+  $(btn.dataset.tab).classList.add('active'); btn.classList.add('active');
+}
 
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-            
-            document.getElementById(tabId).classList.add('active');
-            
-            const btns = document.querySelectorAll('.tab-btn');
-            btns.forEach(b => {
-                if (b.getAttribute('onclick').includes(tabId)) b.classList.add('active');
-            });
+async function loadDashboard(){ // Contract: GET /api/v1/market/overview
+  try{
+    const r=await fetch(API+'/api/v1/market/overview'); const d=await r.json();
+    $('k-index').textContent=(d.index_value??d.index??'—');
+    $('k-equal').textContent=(d.equal_weighted_index??'—');
+    const q=(d.top_movers??d.quotes??[]).slice(0,8);
+    $('watchlist').innerHTML=q.map(x=>{
+      const chg=x.change_pct??x.changePercent??0, cls=chg>=0?'up':'dn';
+      return `<div class="row"><span>${x.symbol??x.name}</span><span class="${cls}">${x.price??x.last_price??'—'} (${chg}%)</span></div>`;
+    }).join('')||'داده‌ای موجود نیست';
+  }catch(e){$('watchlist').innerHTML='<span class="dn">بک‌اند متصل نیست</span>';}
+}
 
-            if (tabId === 'tab-portfolio') fetchPortfolio();
-            if (tabId === 'tab-market') fetchMarketOverview();
-            if (tabId === 'tab-trade') fetchOrders();
-        }
+async function loadAIStatus(){ // Contract: GET /api/ai/status
+  try{const d=await(await fetch(API+'/api/ai/status')).json();
+    $('ai-status').textContent=`مدل: ${d.model} — حالت: ${d.mode}`;}
+  catch(e){$('ai-status').textContent='AI آفلاین';}
+}
 
-        async function fetchMarketOverview() {
-            try {
-                const res = await fetch('/api/v1/market/overview');
-                if (!res.ok) return;
-                const data = await res.json();
-                
-                document.getElementById('market-index').innerText = formatCurrency(data.overall_index) + ' واحد';
-                const isUp = data.index_change >= 0;
-                document.getElementById('market-index-change').innerText = 
-                    (isUp ? '+' : '') + formatCurrency(data.index_change) + ' (' + toPersianDigits(data.index_change_percent) + '٪)';
-                document.getElementById('market-index-change').className = 'stat-value ' + (isUp ? 'stat-green' : 'stat-red');
+async function runAnalysis(){ // Contract: POST /api/ai/analyze-market
+  $('ai-result').textContent='در حال تحلیل…';
+  try{const d=await(await fetch(API+'/api/ai/analyze-market',{method:'POST'})).json();
+    $('ai-result').innerHTML=`سیگنال: <b class="${d.signal==='HOLD'?'':'up'}">${d.signal??'—'}</b> — ریسک: ${d.risk_score??'—'}`;}
+  catch(e){$('ai-result').textContent='خطا در تحلیل';}
+}
 
-                const list = document.getElementById('market-quotes-list');
-                const tickers = data.top_tickers || [];
+async function sendChat(){ // Contract: POST /api/ai/chat -> {ok,reply}
+  const inp=$('chat-input'), txt=inp.value.trim(); if(!txt)return;
+  $('chat').insertAdjacentHTML('beforeend',`<div class="msg me">${txt}</div>`);
+  inp.value=''; $('chat').scrollTop=1e6;
+  try{const d=await(await fetch(API+'/api/ai/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:txt})})).json();
+    $('chat').insertAdjacentHTML('beforeend',`<div class="msg bot">${d.reply??d.response??'—'}</div>`);}
+  catch(e){$('chat').insertAdjacentHTML('beforeend','<div class="msg bot">اتصال برقرار نشد</div>');}
+  $('chat').scrollTop=1e6;
+}
 
-                list.innerHTML = tickers.map(t => {
-                    const up = t.change >= 0;
-                    return `
-                        <li class="item-card" style="cursor: pointer;" onclick="selectTicker('${t.symbol}', ${t.last_price})">
-                            <div>
-                                <strong>${t.symbol}</strong>
-                                <div style="font-size: 11px; color: var(--text-muted);">${t.name}</div>
-                            </div>
-                            <div style="text-align: left;">
-                                <div style="font-weight: bold; font-size: 13px;">${formatCurrency(t.last_price)} ریال</div>
-                                <div style="font-size: 11px; color: ${up ? 'var(--buy-color)' : 'var(--sell-color)'}; font-weight: bold;">
-                                    ${up ? '+' : ''}${toPersianDigits(t.change_percent)}٪
-                                </div>
-                            </div>
-                        </li>
-                    `;
-                }).join('');
-            } catch (err) {
-                console.error("Market error:", err);
-            }
-        }
-
-        async function fetchOrders() {
-            try {
-                const res = await fetch('/api/v1/trade/orders');
-                const data = await res.json();
-                const list = document.getElementById('order-list');
-                const orders = data.orders || [];
-
-                if (orders.length === 0) {
-                    list.innerHTML = '<li style="text-align: center; color: var(--text-muted); padding: 10px;">سفارشی ثبت نشده است.</li>';
-                    return;
-                }
-
-                list.innerHTML = orders.map(o => {
-                    const isBuy = o.side === 'BUY';
-                    return `
-                        <li class="item-card">
-                            <div>
-                                <strong>${o.symbol}</strong>
-                                <div style="font-size: 11px; color: var(--text-muted);">${toPersianDigits(o.timestamp || '')}</div>
-                            </div>
-                            <div style="text-align: left;">
-                                <span class="badge ${isBuy ? 'badge-buy' : 'badge-sell'}">${isBuy ? 'خرید' : 'فروش'}</span>
-                                <div style="margin-top: 4px; font-weight: bold;">${formatCurrency(o.quantity)} @ ${formatCurrency(o.price)}</div>
-                            </div>
-                        </li>
-                    `;
-                }).join('');
-            } catch (err) {
-                console.error("Orders error:", err);
-            }
-        }
-
-        async function submitOrder(side) {
-            const symbol = document.getElementById('symbol').value.trim();
-            const quantity = parseInt(document.getElementById('quantity').value, 10);
-            const price = parseFloat(document.getElementById('price').value);
-            const msgEl = document.getElementById('response-msg');
-
-            if (!symbol || isNaN(quantity) || isNaN(price)) {
-                msgEl.style.color = 'var(--sell-color)';
-                msgEl.innerText = 'مقادیر ورودی معتبر نیستند.';
-                return;
-            }
-
-            msgEl.style.color = 'var(--text-muted)';
-            msgEl.innerText = 'در حال ثبت...';
-
-            try {
-                const res = await fetch('/api/v1/trade/order', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ symbol, side, quantity, price })
-                });
-                const data = await res.json();
-                if (res.ok) {
-                    msgEl.style.color = 'var(--buy-color)';
-                    msgEl.innerText = 'سفارش ' + (side === 'BUY' ? 'خرید' : 'فروش') + ' با شناسه ' + (data.order_id || 'OK') + ' ثبت شد.';
-                    fetchOrders();
-                } else {
-                    msgEl.style.color = 'var(--sell-color)';
-                    msgEl.innerText = data.detail || 'خطا در ثبت سفارش.';
-                }
-            } catch (err) {
-                msgEl.style.color = 'var(--sell-color)';
-                msgEl.innerText = 'خطای اتصال به سرور.';
-            }
-        }
-
-        async function fetchPortfolio() {
-            try {
-                const [sumRes, posRes] = await Promise.all([
-                    fetch('/api/v1/portfolio/summary'),
-                    fetch('/api/v1/portfolio/positions')
-                ]);
-
-                if (sumRes.ok) {
-                    const sum = await sumRes.json();
-                    document.getElementById('port-total-val').innerText = formatCurrency(sum.total_value) + ' ریال';
-                    document.getElementById('port-cash').innerText = formatCurrency(sum.cash_balance) + ' ریال';
-                    
-                    const pnlEl = document.getElementById('port-pnl');
-                    pnlEl.innerText = formatCurrency(sum.total_unrealized_pnl) + ' ریال';
-                    pnlEl.className = 'stat-value ' + (sum.total_unrealized_pnl >= 0 ? 'stat-green' : 'stat-red');
-
-                    const retEl = document.getElementById('port-return');
-                    retEl.innerText = toPersianDigits(sum.total_return_pct) + ' ٪';
-                    retEl.className = 'stat-value ' + (sum.total_return_pct >= 0 ? 'stat-green' : 'stat-red');
-                }
-
-                if (posRes.ok) {
-                    const posData = await posRes.json();
-                    const list = document.getElementById('positions-list');
-                    const positions = posData.positions || [];
-
-                    if (positions.length === 0) {
-                        list.innerHTML = '<li style="text-align: center; color: var(--text-muted); padding: 10px;">موقعیت بازی وجود ندارد.</li>';
-                        return;
-                    }
-
-                    list.innerHTML = positions.map(p => {
-                        const isProfit = p.unrealized_pnl >= 0;
-                        return `
-                            <li class="item-card">
-                                <div>
-                                    <strong>${p.symbol}</strong>
-                                    <div style="font-size: 11px; color: var(--text-muted);">
-                                        تعداد: ${formatCurrency(p.quantity)} | میانگین: ${formatCurrency(p.average_buy_price)}
-                                    </div>
-                                </div>
-                                <div style="text-align: left;">
-                                    <div style="font-weight: bold; color: ${isProfit ? 'var(--buy-color)' : 'var(--sell-color)'};">
-                                        ${formatCurrency(p.unrealized_pnl)} (${toPersianDigits(p.pnl_percentage)}٪)
-                                    </div>
-                                    <div style="font-size: 11px; color: var(--text-muted);">روز: ${formatCurrency(p.current_price)}</div>
-                                </div>
-                            </li>
-                        `;
-                    }).join('');
-                }
-            } catch (err) {
-                console.error("Portfolio error:", err);
-            }
-        }
-
-        async function checkRisk() {
-            const symbol = document.getElementById('risk-symbol').value.trim();
-            const quantity = parseInt(document.getElementById('risk-quantity').value, 10);
-            const price = parseFloat(document.getElementById('risk-price').value);
-            const resultEl = document.getElementById('risk-result');
-
-            resultEl.innerHTML = '<div style="font-size: 12px; color: var(--text-muted); text-align: center;">در حال ارزیابی...</div>';
-
-            try {
-                const res = await fetch('/api/v1/risk/check-order', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ symbol, side: "BUY", quantity, price })
-                });
-
-                const data = await res.json();
-                const badgeClass = data.passed ? 'badge-risk-ok' : 'badge-risk-err';
-                const statusText = data.passed ? 'تأیید شده' : 'رد شده';
-
-                resultEl.innerHTML = `
-                    <div style="background: var(--card-sub); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 12px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                            <span>وضعیت سفارش:</span>
-                            <span class="badge ${badgeClass}">${statusText}</span>
-                        </div>
-                        <div>امتیاز ریسک: <strong>${toPersianDigits(data.risk_score)} / ۱۰۰</strong></div>
-                        <div>ارزش معامله: <strong>${formatCurrency(data.order_value)} ریال</strong></div>
-                        ${data.reasons && data.reasons.length > 0 ? `<div style="color: var(--sell-color); margin-top: 6px;">دلایل: ${data.reasons.join(', ')}</div>` : ''}
-                    </div>
-                `;
-            } catch (err) {
-                resultEl.innerHTML = '<div style="font-size: 12px; color: var(--sell-color); text-align: center;">خطا در ارزیابی ریسک.</div>';
-            }
-        }
-
-        fetchMarketOverview();
-        fetchOrders();
-        setInterval(() => {
-            fetchMarketOverview();
-        }, 5000);
-    </script>
+loadDashboard(); loadAIStatus();
+setInterval(loadDashboard,30000); // 30s auto-refresh
+</script>
 </body>
 </html>
