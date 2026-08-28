@@ -1,0 +1,18 @@
+{
+  "release_tag": "v0.28.0-ui-complete",
+  "commit_hash": "7356f5fb6057a81a08afa35b1b7f192d3163a448",
+  "commit_short": "7356f5f",
+  "branch": "main",
+  "service_status": "active",
+  "binding_port": 8000,
+  "verified_at_utc": "2026-08-28T19:33:48Z",
+  "architecture": "Mobile-First 5-Tab SPA + FastAPI Core",
+  "endpoints_verified": [
+    "/",
+    "/api/v1/market/overview",
+    "/api/ai/status",
+    "/api/strategy/evaluate",
+    "/api/v1/portfolio/summary",
+    "/api/v1/git/status"
+  ]
+}
