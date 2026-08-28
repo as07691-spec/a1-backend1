@@ -239,3 +239,59 @@ async def place_order(order: OrderRequest):
 async def list_orders(symbol: Optional[str] = None):
     return {"success": True, "orders": trade_engine.list_orders(symbol)}
 
+
+
+# Phase 20: Mobile UI Dashboard Mount
+import os
+static_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")
+if os.path.exists(static_dir):
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
+@app.get("/", include_in_schema=False)
+async def serve_dashboard():
+    return FileResponse(os.path.join(static_dir, "index.html"))
+
+
+# =====================================================================
+# Phase 21: Portfolio & Risk Engine Endpoints
+# =====================================================================
+try:
+    from app.portfolio import portfolio_engine, Position, PortfolioSummary
+    from app.risk import risk_engine, RiskCheckRequest, RiskCheckResult
+except ImportError:
+    from portfolio import portfolio_engine, Position, PortfolioSummary
+    from risk import risk_engine, RiskCheckRequest, RiskCheckResult
+
+@app.get("/api/v1/portfolio/summary", response_model=PortfolioSummary, tags=["Portfolio"])
+async def get_portfolio_summary():
+    return portfolio_engine.get_summary()
+
+@app.get("/api/v1/portfolio/positions", tags=["Portfolio"])
+async def get_portfolio_positions():
+    return {"positions": portfolio_engine.get_positions()}
+
+@app.post("/api/v1/risk/check-order", response_model=RiskCheckResult, tags=["Risk"])
+async def check_order_risk(order: RiskCheckRequest):
+    summary = portfolio_engine.get_summary()
+    return risk_engine.evaluate_order(
+        symbol=order.symbol,
+        side=order.side,
+        quantity=order.quantity,
+        price=order.price,
+        total_portfolio_value=summary.total_value
+    )
+
+
+# Market Data Endpoints
+try:
+    from app.market import market_engine, MarketOverview, MarketQuote
+except ImportError:
+    from market import market_engine, MarketOverview, MarketQuote
+
+@app.get("/api/v1/market/overview", response_model=MarketOverview, tags=["Market"])
+async def get_market_overview():
+    return market_engine.get_overview()
+
+@app.get("/api/v1/market/quotes", response_model=list[MarketQuote], tags=["Market"])
+async def get_market_quotes():
+    return market_engine.get_quotes()
