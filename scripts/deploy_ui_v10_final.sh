@@ -1,3 +1,19 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# Script Name : deploy_ui_v10_final.sh
+# Purpose     : Deploy comprehensive Mobile-First UI v10 with 5 full tabs
+# Logic       : Overwrites /opt/a1/backend/www/index.html with standard design,
+#               connects API endpoints, and verifies response via curl.
+# ==============================================================================
+
+set -euo pipefail
+
+WWW_DIR="/opt/a1/backend/www"
+INDEX_FILE="${WWW_DIR}/index.html"
+
+echo "==> Deploying UI v10 to ${INDEX_FILE}..."
+
+cat << 'HTML_EOF' > "${INDEX_FILE}"
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -215,3 +231,8 @@
   </script>
 </body>
 </html>
+HTML_EOF
+
+echo "==> Verifying web endpoint response..."
+curl -sI http://127.0.0.1:8000/ | head -n 3
+echo "==> Deployment of UI v10 completed successfully."
