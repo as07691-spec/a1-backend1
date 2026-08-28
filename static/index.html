@@ -1,130 +1,290 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-<!-- Purpose: A1 Agent mobile-first UI, Phase 26 (Dashboard + Market/AI tabs) -->
+<!-- Purpose: A1 Agent Mobile UI - Phase 27 (Dashboard, AI/Market, Strategy, Portfolio) -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>A1 Agent</title>
+<title>A1 Agent Pro</title>
 <style>
-/* Logic: Dark glassmorphism theme, mobile-first, bottom tab bar */
-:root{--bg:#0b0e14;--card:#151a24;--acc:#3b82f6;--up:#22c55e;--dn:#ef4444;--tx:#e5e7eb;--mut:#94a3b8}
+/* Logic: Dark glassmorphism, high contrast, mobile ergonomics */
+:root{--bg:#0b0e14;--card:#151a24;--card-border:#232a38;--acc:#3b82f6;--up:#22c55e;--dn:#ef4444;--warn:#f59e0b;--tx:#e5e7eb;--mut:#94a3b8}
 *{box-sizing:border-box;margin:0;padding:0;font-family:'Vazirmatn',system-ui,sans-serif}
-body{background:var(--bg);color:var(--tx);min-height:100vh;padding-bottom:70px}
-header{position:sticky;top:0;z-index:9;display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:rgba(11,14,20,.85);backdrop-filter:blur(8px)}
-header h1{font-size:1.05rem}
-.badge{font-size:.65rem;padding:3px 8px;border-radius:99px;background:#134e4a;color:#5eead4}
-.page{padding:16px;display:none}
+body{background:var(--bg);color:var(--tx);min-height:100vh;padding-bottom:76px}
+header{position:sticky;top:0;z-index:10;display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:rgba(11,14,20,.85);backdrop-filter:blur(8px);border-bottom:1px solid var(--card-border)}
+header h1{font-size:1.05rem;font-weight:700}
+.header-actions{display:flex;align-items:center;gap:8px}
+.badge{font-size:.65rem;padding:3px 8px;border-radius:99px;font-weight:700}
+.badge-live{background:#134e4a;color:#5eead4}
+.badge-paper{background:#3b2d14;color:var(--warn)}
+.btn-kill{background:#7f1d1d;color:#fca5a5;border:1px solid var(--dn);padding:4px 10px;border-radius:8px;font-size:.7rem;font-weight:700;cursor:pointer}
+.page{padding:14px 16px;display:none}
 .page.active{display:block}
-.card{background:var(--card);border:1px solid #232a38;border-radius:14px;padding:14px;margin-bottom:12px}
-.card h3{font-size:.85rem;color:var(--mut);margin-bottom:10px}
-.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.kpi{background:var(--card);border:1px solid #232a38;border-radius:14px;padding:12px}
+.card{background:var(--card);border:1px solid var(--card-border);border-radius:14px;padding:14px;margin-bottom:12px}
+.card h3{font-size:.85rem;color:var(--mut);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.kpi{background:var(--card);border:1px solid var(--card-border);border-radius:14px;padding:12px}
 .kpi .v{font-size:1.15rem;font-weight:700;margin-top:4px}
-.row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid #1c2330;font-size:.85rem}
+.row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #1c2330;font-size:.83rem}
 .row:last-child{border:none}
-.up{color:var(--up)}.dn{color:var(--dn)}
-.tabbar{position:fixed;bottom:0;right:0;left:0;display:flex;background:var(--card);border-top:1px solid #232a38}
-.tabbar button{flex:1;background:none;border:none;color:var(--mut);padding:12px 0;font-size:.72rem;cursor:pointer}
-.tabbar button.active{color:var(--acc)}
-button.act{width:100%;background:var(--acc);color:#fff;border:none;border-radius:10px;padding:12px;font-weight:700;cursor:pointer}
+.up{color:var(--up)}.dn{color:var(--dn)}.warn{color:var(--warn)}
+.tabbar{position:fixed;bottom:0;right:0;left:0;display:flex;background:var(--card);border-top:1px solid var(--card-border);z-index:20}
+.tabbar button{flex:1;background:none;border:none;color:var(--mut);padding:10px 0 8px 0;font-size:.68rem;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px}
+.tabbar button.active{color:var(--acc);font-weight:700}
+button.act{width:100%;background:var(--acc);color:#fff;border:none;border-radius:10px;padding:11px;font-weight:700;font-size:.85rem;cursor:pointer}
+button.act-sec{background:#1e293b;color:var(--tx);border:1px solid var(--card-border);margin-top:6px}
 .chatbox{height:46vh;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
-.msg{max-width:82%;padding:10px 12px;border-radius:14px;font-size:.83rem;line-height:1.7}
-.msg.bot{background:var(--card);align-self:flex-start}
+.msg{max-width:85%;padding:10px 12px;border-radius:14px;font-size:.82rem;line-height:1.7}
+.msg.bot{background:var(--card);border:1px solid var(--card-border);align-self:flex-start}
 .msg.me{background:var(--acc);align-self:flex-end}
 .chatin{display:flex;gap:8px}
-.chatin input{flex:1;background:#0f1420;border:1px solid #232a38;border-radius:10px;padding:11px;color:var(--tx)}
+.chatin input,.form-in{flex:1;background:#0f1420;border:1px solid var(--card-border);border-radius:10px;padding:10px 12px;color:var(--tx);font-size:.83rem;width:100%}
+.form-group{margin-bottom:10px}
+.form-group label{font-size:.75rem;color:var(--mut);display:block;margin-bottom:4px}
+.select-in{background:#0f1420;border:1px solid var(--card-border);border-radius:10px;padding:10px 12px;color:var(--tx);font-size:.83rem;width:100%}
 </style>
 </head>
 <body>
-<header><h1>🤖 A1 Agent</h1><span id="svc-badge" class="badge">● LIVE</span></header>
+<header>
+  <h1>🤖 A1 Agent Pro</h1>
+  <div class="header-actions">
+    <span id="mode-badge" class="badge badge-paper">PAPER</span>
+    <button class="btn-kill" onclick="triggerKillSwitch()">🚨 قطع اضطراری</button>
+  </div>
+</header>
 
 <!-- ============ TAB 1: DASHBOARD ============ -->
 <section id="tab-dash" class="page active">
   <div class="kpis">
     <div class="kpi"><h3>شاخص کل</h3><div class="v" id="k-index">—</div></div>
-    <div class="kpi"><h3>ارزش بازار (هم‌وزن)</h3><div class="v" id="k-equal">—</div></div>
+    <div class="kpi"><h3>شاخص هم‌وزن</h3><div class="v" id="k-equal">—</div></div>
   </div>
   <div class="card">
-    <h3>دیده‌بان بازار — Snapshot زنده</h3>
+    <h3>دیده‌بان بازار (Snapshot زنده) <span style="font-size:.7rem;color:var(--mut);cursor:pointer" onclick="loadDashboard()">🔄 رفرش</span></h3>
     <div id="watchlist">در حال بارگذاری…</div>
   </div>
   <div class="card">
-    <h3>وضعیت موتور AI</h3>
+    <h3>وضعیت هسته AI</h3>
     <div id="ai-status">—</div>
-    <br><button class="act" onclick="runAnalysis()">اجرای تحلیل بازار با AI</button>
-    <div id="ai-result" style="margin-top:10px"></div>
+    <br><button class="act" onclick="runAnalysis()">اجرای تحلیل بازار با هوش مصنوعی</button>
+    <div id="ai-result" style="margin-top:10px;font-size:.85rem"></div>
   </div>
 </section>
 
-<!-- ============ TAB 2: MARKET / AI ANALYSIS ============ -->
+<!-- ============ TAB 2: AI / CHAT ============ -->
 <section id="tab-ai" class="page">
   <div class="card">
-    <h3>گفتگو با تحلیلگر AI</h3>
+    <h3>گفتگو و تحلیلگر هوشمند</h3>
     <div class="chatbox" id="chat">
-      <div class="msg bot">سلام! من A1 هستم. آماده دریافت دستورات شما.</div>
+      <div class="msg bot">سلام! من تحلیلگر A1 هستم. آماده پاسخگویی و ارائه دیدگاه تخصصی بازار.</div>
     </div>
     <div class="chatin">
-      <input id="chat-input" placeholder="پیام شما…">
-      <button class="act" style="width:auto;padding:11px 18px" onclick="sendChat()">ارسال</button>
+      <input id="chat-input" placeholder="پرسش یا دستور شما…" onkeydown="if(event.key==='Enter')sendChat()">
+      <button class="act" style="width:auto;padding:10px 16px" onclick="sendChat()">ارسال</button>
     </div>
   </div>
 </section>
 
-<!-- ============ BOTTOM TAB BAR ============ -->
+<!-- ============ TAB 3: STRATEGY & TRADE ============ -->
+<section id="tab-strat" class="page">
+  <div class="card">
+    <h3>موتور استراتژی فعال</h3>
+    <div class="form-group">
+      <label>انتخاب الگوریتم معاملاتی:</label>
+      <select id="strat-select" class="select-in">
+        <option value="MOMENTUM_LOCAL_V1">۱. روند یاب مومنتوم (Momentum Local v1)</option>
+        <option value="PRICE_ACTION_RTM">۲. پرایس اکشن (RTM Supply/Demand)</option>
+        <option value="VOLATILITY_BREAKOUT">۳. شکست نوسان (Volatility Breakout)</option>
+      </select>
+    </div>
+    <button class="act" onclick="evaluateStrategy()">ارزیابی وضعیت استراتژی</button>
+    <div id="strat-result" style="margin-top:10px;font-size:.85rem"></div>
+  </div>
+
+  <div class="card">
+    <h3>ثبت سفارش جدید</h3>شن (RTM Supply/Demand)</option>
+        <option value="VOLATILITY_BREAKOUT">۳. شکست نوسان (Volatility Breakout)</option>
+      </select>
+    </div>
+    <button class="act" onclick="evaluateStrategy()">ارزیابی وضعیت استراتژی</button>
+    <div id="strat-result" style="margin-top:10px;font-size:.85rem"></div>
+  </div>
+
+  <div class="card">
+    <h3>ثبت سفارش جدید</h3>
+    <div class="form-group">
+      <label>نماد:</label>
+      <input id="trade-sym" class="form-in" value="فولاد">
+    </div>
+    <div class="form-group" style="display:flex;gap:10px">
+      <div style="flex:1">
+        <label>تعداد:</label>
+        <input id="trade-qty" type="number" class="form-in" value="1000">
+      </div>
+      <div style="flex:1">
+        <label>سمت:</label>
+        <select id="trade-side" class="select-in">
+          <option value="BUY">خرید (BUY)</option>
+          <option value="SELL">فروش (SELL)</option>
+        </select>
+      </div>
+    </div>
+    <button class="act" onclick="executeTrade()">pi"><h3>سود/زیان کل</h3><div class="v" id="p-pnl">—</div></div>
+  </div>
+  <div class="card">
+    <h3>دارایی‌ها و موقعیت‌ها <span style="font-size:.7rem;color:var(--mut);cursor:pointer" onclick="loadPortfolio()">🔄 رفرش</span></h3>
+    <div id="portfolio-list">در حال بارگذاری…</div>
+  </div>
+  <div class="card">
+    <h3>سنجش ریسک سفارش قبل از ارسال</h3>
+    <div class="form-group">
+      <label>بررسی حد ریسک برای نماد و حجم فعلی:</label>
+      <button class="act act-sec" onclick="checkRisk()">بررسی ریسک پورتفوی</button>
+      <div id="risk-result" style="margin-top:10px;font-size:.85rem"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ BOTTOM NAVIGATION ============ -->
 <nav class="tabbar">
-  <button class="active" data-tab="tab-dash" onclick="go(this)">📊 داشبورد</button>
-  <button data-tab="tab-ai" onclick="go(this)">🧠 تحلیل بازار/AI</button>
+  <button class="active" data-tab="tab-dash" onclick="go(this)"><span>📊</span>داشبورد</button>
+  <button data-tab="tab-ai" onclick="go(this)"><span>🧠</span>تحلیل AI</button>
+  <button data-tab="tab-strat" onclick="go(this)"><span>⚡</span>استراتژی</button>
+  <button data-tab="tab-port" onclick="go(this)"><span>💼</span>پورتفوی</button>
 </nav>
 
 <script>
-/* Purpose: Frontend controller. Logic: calls existing backend contracts only. */
+/* Purpose: Frontend controller for all 4 subsystems. Zero external deps. */
 const API='http://127.0.0.1:8000';
 const $=id=>document.getElementById(id);
 
-function go(btn){ // Simple hash-free tab router
+function go(btn){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tabbar button').forEach(b=>b.classList.remove('active'));
-  $(btn.dataset.tab).classList.add('active'); btn.classList.add('active');
+  $(btn.dataset.tab).classList.add('active');
+  btn.classList.add('active');
+  if(btn.dataset.tab==='tab-port') loadPortfolio();
 }
 
-async function loadDashboard(){ // Contract: GET /api/v1/market/overview
+// --- TAB 1: Dashboard ---
+async function loadDashboard(){
   try{
     const r=await fetch(API+'/api/v1/market/overview'); const d=await r.json();
-    $('k-index').textContent=(d.index_value??d.index??'—');
-    $('k-equal').textContent=(d.equal_weighted_index??'—');
+    $('k-index').textContent=d.index_value??d.index??'—';
+    $('k-equal').textContent=d.equal_weighted_index??'—';
     const q=(d.top_movers??d.quotes??[]).slice(0,8);
     $('watchlist').innerHTML=q.map(x=>{
       const chg=x.change_pct??x.changePercent??0, cls=chg>=0?'up':'dn';
       return `<div class="row"><span>${x.symbol??x.name}</span><span class="${cls}">${x.price??x.last_price??'—'} (${chg}%)</span></div>`;
     }).join('')||'داده‌ای موجود نیست';
-  }catch(e){$('watchlist').innerHTML='<span class="dn">بک‌اند متصل نیست</span>';}
+  }catch(e){$('watchlist').innerHTML='<span class="dn">خطا در بارگذاری دیده‌بان</span>';}
 }
 
-async function loadAIStatus(){ // Contract: GET /api/ai/status
-  try{const d=await(await fetch(API+'/api/ai/status')).json();
-    $('ai-status').textContent=`مدل: ${d.model} — حالت: ${d.mode}`;}
-  catch(e){$('ai-status').textContent='AI آفلاین';}
+async function loadAIStatus(){
+  try{
+    const d=await(await fetch(API+'/api/ai/status')).json();
+    $('ai-status').textContent=`مدل: ${d.model} — حالت: ${d.mode}`;
+  }catch(e){$('ai-status').textContent='AI آفلاین';}
 }
 
-async function runAnalysis(){ // Contract: POST /api/ai/analyze-market
-  $('ai-result').textContent='در حال تحلیل…';
-  try{const d=await(await fetch(API+'/api/ai/analyze-market',{method:'POST'})).json();
-    $('ai-result').innerHTML=`سیگنال: <b class="${d.signal==='HOLD'?'':'up'}">${d.signal??'—'}</b> — ریسک: ${d.risk_score??'—'}`;}
-  catch(e){$('ai-result').textContent='خطا در تحلیل';}
+async function runAnalysis(){
+  $('ai-result').textContent='در حال پردازش سیگنال بازار…';
+  try{
+    const d=await(await fetch(API+'/api/ai/analyze-market',{method:'POST'})).json();
+    $('ai-result').innerHTML=`سیگنال: <b class="${d.signal==='HOLD'?'':'up'}">${d.signal??'—'}</b> | ریسک: <b>${d.risk_score??'—'}</b>`;
+  }catch(e){$('ai-result').textContent='خطا در تحلیل بازار';}
 }
 
-async function sendChat(){ // Contract: POST /api/ai/chat -> {ok,reply}
-  const inp=$('chat-input'), txt=inp.value.trim(); if(!txt)return;
+// --- TAB 2: AI Chat ---
+async function sendChat(){
+  const inp=$('chat-input'), txt=inp.value.trim(); if(!txt) return;
   $('chat').insertAdjacentHTML('beforeend',`<div class="msg me">${txt}</div>`);
   inp.value=''; $('chat').scrollTop=1e6;
-  try{const d=await(await fetch(API+'/api/ai/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:txt})})).json();
-    $('chat').insertAdjacentHTML('beforeend',`<div class="msg bot">${d.reply??d.response??'—'}</div>`);}
-  catch(e){$('chat').insertAdjacentHTML('beforeend','<div class="msg bot">اتصال برقرار نشد</div>');}
+  try{
+    const d=await(await fetch(API+'/api/ai/chat',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({message:txt})
+    })).json();
+    $('chat').insertAdjacentHTML('beforeend',`<div class="msg bot">${d.reply??d.response??'—'}</div>`);
+  }catch(e){$('chat').insertAdjacentHTML('beforeend','<div class="msg bot">خطا در اتصال به موتور AI</div>');}
   $('chat').scrollTop=1e6;
 }
 
-loadDashboard(); loadAIStatus();
-setInterval(loadDashboard,30000); // 30s auto-refresh
+// --- TAB 3: Strategy & Trade ---
+async function evaluateStrategy(){
+  const s=$('strat-select').value;
+  $('strat-result').textContent='در حال ارزیابی استراتژی…';
+  try{
+    const d=await(await fetch(API+'/api/strategy/evaluate',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({strategy:s})
+    })).json();
+    $('strat-result').innerHTML=`وضعیت: <b>${d.action}</b> | امتیاز: <b>${d.score}</b>`;
+  }catch(e){$('strat-result').textContent='خطا در ارزیابی استراتژی';}
+}
+
+async function executeTrade(){
+  const sym=$('trade-sym').value.trim(), qty=parseInt($('trade-qty').value), side=$('trade-side').value;
+  if(!sym||!qty) return;
+  $('trade-result').textContent='در حال ثبت و ارسال سفارش…';
+  try{
+    const d=await(await fetch(API+'/api/trade/order',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({symbol:sym,qty:qty,side:side})
+    })).json();
+    $('trade-result').innerHTML=`<span class="up">سفارش ثبت شد: ${d.order_id} (${d.status})</span>`;
+  }catch(e){$('trade-result').innerHTML='<span class="dn">خطا در ثبت سفارش</span>';}
+}
+
+async function triggerKillSwitch(){
+  if(!confirm('آیا از فعال‌سازی قطع اضطراری و لغو کلیه سفارش‌ها اطمینان دارید؟')) return;
+  try{
+    const d=await(await fetch(API+'/api/trade/killswitch',{method:'POST'})).json();
+    alert('قطع اضطراری اعمال شد: '+d.message);
+  }catch(e){alert('خطا در فراخوانی Kill Switch');}
+}
+
+// --- TAB 4: Portfolio & Risk ---
+async function loadPortfolio(){
+  try{
+    const r=await fetch(API+'/api/v1/portfolio/summary'); const d=await r.json();
+    $('p-total').textContent=(d.total_value??0).toLocaleString('fa-IR')+' ریال';
+    const pnl=d.total_pnl??0;
+    $('p-pnl').textContent=(pnl>=0?'+':'')+pnl.toLocaleString('fa-IR')+' ('+(d.pnl_pct??0)+'%)';
+    $('p-pnl').className='v '+(pnl>=0?'up':'dn');
+  }catch(e){$('p-total').textContent='—';}
+
+  try{
+    const r=await fetch(API+'/api/v1/portfolio/positions'); const d=await r.json();
+    const pos=d.positions??[];
+    $('portfolio-list').innerHTML=pos.map(x=>`
+      <div class="row">
+        <div><b>${x.symbol}</b> <span style="color:var(--mut)">(${x.quantity} سهم)</span></div>
+        <div class="${(x.unrealized_pnl??0)>=0?'up':'dn'}">${(x.current_price??0).toLocaleString('fa-IR')} ریال</div>
+      </div>
+    `).join('')||'موقعیتی در پورتفوی وجود ندارد';
+  }catch(e){$('portfolio-list').innerHTML='<span class="dn">خطا در بارگذاری دارایی‌ها</span>';}
+}
+
+async function checkRisk(){
+  const sym=$('trade-sym').value.trim(), qty=parseInt($('trade-qty').value), side=$('trade-side').value;
+  $('risk-result').textContent='در حال ارزیابی ریسک…';
+  try{
+    const d=await(await fetch(API+'/api/v1/risk/check-order',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({symbol:sym,quantity:qty,side:side,price:5000})
+    })).json();
+    $('risk-result').innerHTML=`وضعیت ریسک: <b class="${d.approved?'up':'dn'}">${d.approved?'مجاز (تأیید شد)':'غیرمجاز (رد شد)'}</b> | دلیل: ${d.reason??'سفارش درون محدوده ریسک پورتفوی است'}`;
+  }catch(e){$('risk-result').textContent='خطا در بررسی ریسک پورتفوی';}
+}
+
+// Initial Boot
+loadDashboard();
+loadAIStatus();
+setInterval(loadDashboard,30000);
 </script>
 </body>
 </html>
