@@ -14,7 +14,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.ai_engine import ai_engine
 from app.strategy_engine import strategy_mgr
-from app.trade_engine import trade_executor
+from app.trade_engine import trade_engine, OrderRequest
 
 DATA_FILE = "/opt/a1/backend/data/market_snapshot.json"
 WWW_DIR = "/opt/a1/backend/www"
@@ -226,3 +226,16 @@ async def git_status():
 @app.post("/api/v1/git/commit-push")
 async def git_commit_push(message: str = "update from A1 Studio"):
     return git_engine.commit_and_push(message)
+
+# Phase 19 Trade Engine Endpoints
+@app.post("/api/v1/trade/order", tags=["Trade"])
+async def place_order(order: OrderRequest):
+    result = trade_engine.place_order(order)
+    if not result.get("success"):
+        return {"success": False, "error": result.get("error")}
+    return {"success": True, "data": result.get("order")}
+
+@app.get("/api/v1/trade/orders", tags=["Trade"])
+async def list_orders(symbol: Optional[str] = None):
+    return {"success": True, "orders": trade_engine.list_orders(symbol)}
+

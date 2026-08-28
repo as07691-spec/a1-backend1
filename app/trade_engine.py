@@ -1,40 +1,50 @@
-# Purpose: Order execution simulator and position safety controller.
-# Logic: Handles simulated order lifecycle and emergency kill-switch.
+import uuid
+from datetime import datetime
+from typing import Dict, Any, List, Optional
+from pydantic import BaseModel, Field
 
-import time
-from typing import Dict, Any, List
+class OrderRequest(BaseModel):
+    symbol: str = Field(..., description="Instrument symbol (e.g. فولاد, خودرو)")
+    side: str = Field(..., description="Order side: 'BUY' or 'SELL'")
+    quantity: int = Field(..., gt=0, description="Order volume in shares")
+    price: float = Field(..., gt=0, description="Order limit price in Rials")
+    order_type: str = Field("LIMIT", description="Order type: LIMIT or MARKET")
 
-class TradeExecutor:
+class TradeEngine:
     def __init__(self):
-        self._orders: List[Dict[str, Any]] = []
+        self.orders: Dict[str, Dict[str, Any]] = {}
 
-    def execute_order(self, symbol: str, side: str, volume: int, price: float) -> Dict[str, Any]:
-        order_id = f"ORD-{int(time.time() * 1000)}"
-        order = {
-            "ok": True,
+    def place_order(self, order: OrderRequest) -> Dict[str, Any]:
+        order_id = str(uuid.uuid4())[:8]
+        timestamp = datetime.now().isoformat()
+        side = order.side.upper()
+        if side not in ["BUY", "SELL"]:
+            return {"success": False, "error": f"Invalid side: {order.side}"}
+
+        record = {
             "order_id": order_id,
-            "symbol": symbol,
-            "side": side.upper(),
-            "volume": int(volume),
-            "price": float(price),
+            "symbol": order.symbol,
+            "side": side,
+            "quantity": order.quantity,
+            "price": order.price,
+            "order_type": order.order_type.upper(),
             "status": "FILLED",
-            "mode": "PAPER_TRADING_SIMULATOR",
-            "timestamp": time.time()
+            "filled_quantity": order.quantity,
+            "average_price": order.price,
+            "total_value": order.quantity * order.price,
+            "timestamp": timestamp,
+            "error_message": None
         }
-        self._orders.insert(0, order)
-        return order
+        self.orders[order_id] = record
+        return {"success": True, "order": record}
 
-    def get_order_history(self, limit: int = 10) -> List[Dict[str, Any]]:
-        return self._orders[:limit]
+    def get_order(self, order_id: str) -> Optional[Dict[str, Any]]:
+        return self.orders.get(order_id)
 
-    def cancel_all_orders(self) -> Dict[str, Any]:
-        count = len(self._orders)
-        return {
-            "ok": True,
-            "status": "ALL_ORDERS_CANCELLED_AND_POSITIONS_SAFE",
-            "cancelled_count": count,
-            "timestamp": time.time(),
-            "msg": "Kill Switch Activated: Open positions secured, active orders cancelled."
-        }
+    def list_orders(self, symbol: Optional[str] = None) -> List[Dict[str, Any]]:
+        order_list = list(self.orders.values())
+        if symbol:
+            order_list = [o for o in order_list if o["symbol"] == symbol]
+        return sorted(order_list, key=lambda x: x["timestamp"], reverse=True)
 
-trade_executor = TradeExecutor()
+trade_engine = TradeEngine()
