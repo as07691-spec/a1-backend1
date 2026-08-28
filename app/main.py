@@ -1,3 +1,4 @@
+from app.git_engine import git_engine
 from .market_feed import MarketFeedEngine
 # Purpose: Unified FastAPI entrypoint.
 # Logic: Registers routes, serves static frontend, integrates AI, strategy, and trade engines.
@@ -216,3 +217,12 @@ async def get_symbol_ticker(symbol: str):
 @app.get("/api/market/overview")
 async def get_market_overview_endpoint():
     return MarketFeedEngine.get_market_overview()
+
+
+@app.get("/api/v1/git/status")
+async def git_status():
+    return git_engine.get_status()
+
+@app.post("/api/v1/git/commit-push")
+async def git_commit_push(message: str = "update from A1 Studio"):
+    return git_engine.commit_and_push(message)
