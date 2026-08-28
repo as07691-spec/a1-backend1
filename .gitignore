@@ -21,3 +21,6 @@ node_modules/
 config/providers.json
 config/providers.json.bak.*
 *.log.*
+
+# Runtime market data
+data/market_snapshot.json
